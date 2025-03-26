@@ -1,0 +1,388 @@
+# import the necessary libraries
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import unicodedata
+import numpy as np
+import pandas as pd
+from scipy.stats import gaussian_kde
+import sqlite3
+import os
+
+
+# class to get the datas pre formatted for the application graphics + leaderboard showing
+class Race_Datas:
+    
+    # initialize the class with the file path
+    def __init__(self, file_path: str) :
+        csv_path = "Data/raw_race_data.csv"
+        # connect to the database
+        conn = sqlite3.connect(file_path)
+        cursor = conn.cursor()
+
+        # check if the 'runners' table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='runners';")
+        table_exists = cursor.fetchone() is not None
+        
+        if table_exists:
+            # load data from the database
+            query = "SELECT * FROM runners"
+            self.runners = pd.read_sql(query, conn)
+        else:
+            # load data from the CSV and insert into the database
+            if os.path.exists(csv_path):
+                self.runners = pd.read_csv(csv_path, sep=";", header=0, dtype=str)
+                # create the runners table
+                cursor.execute("""
+                    CREATE TABLE runners (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT,
+                        Finish TEXT,
+                        Rank TEXT,
+                        Category TEXT,
+                        Category_Rank TEXT
+                    )
+                """)
+                # insert the data into the database
+                self.runners.to_sql("runners", conn, if_exists="replace", index=False)
+            else:
+                raise FileNotFoundError(f"CSV file '{csv_path}' not found.")
+        conn.close()
+
+        # create the categories datas and pictures
+        self.create_categories_datas()
+        self.create_pre_computed_pictures()
+
+    # function to create the categories datas
+    def create_categories_datas(self):
+        self.male_runners = self.runners[self.runners["Sex"] == "Homme"]
+        self.female_runners = self.runners[self.runners["Sex"] == "Femme"]
+        self.juh_runners = self.runners[self.runners["Category"] == "JUH"]
+        self.juf_runners = self.runners[self.runners["Category"] == "JUF"]
+        self.esh_runners = self.runners[self.runners["Category"] == "ESH"]
+        self.esf_runners = self.runners[self.runners["Category"] == "ESF"]
+        self.seh_runners = self.runners[self.runners["Category"] == "SEH"]
+        self.sef_runners = self.runners[self.runners["Category"] == "SEF"]
+        self.mah_1_runners = self.runners[self.runners["Category"] == "MAH1"]
+        self.maf_1_runners = self.runners[self.runners["Category"] == "MAF1"]
+        self.mah_2_runners = self.runners[self.runners["Category"] == "MAH2"]
+        self.maf_2_runners = self.runners[self.runners["Category"] == "MAF2"]
+    
+    # function to get a Gaussian curve from a list of data
+    def get_gaussienne_graph(self, list_data, name_fig: str, title: str, title_description: str, is_by_name: bool, own_time: str):
+        
+        # Convert list_data from HH:MM:SS to total seconds
+        def time_to_seconds(time_str):
+            """Convert time from HH:MM:SS or MM:SS format to total seconds"""
+            if pd.isna(time_str) or time_str == "":
+                return None  # Keep missing values as None
+            
+            parts = time_str.split(":")
+            
+            if len(parts) == 3:  # HH:MM:SS format
+                h, m, s = map(int, parts)
+            elif len(parts) == 2:  # MM:SS format (assume 0 hours)
+                h, m, s = 0, int(parts[0]), int(parts[1])
+            else:
+                return None  # Invalid format : DSQ, DNF, DNS, etc.
+
+            return h * 3600 + m * 60 + s
+        
+        list_data = list_data.dropna().apply(time_to_seconds).dropna().astype(float)
+
+        # Convert own_time to seconds if provided
+        own_time = time_to_seconds(own_time)
+
+        # Create the Gaussian curve
+        density = gaussian_kde(list_data)
+        x = np.linspace(min(list_data), max(list_data), 1000)
+        y = density(x)
+
+        # Create the graph
+        plt.clf()
+        plt.figure(figsize=(12, 5))
+        plt.scatter(list_data, density(list_data), color="red", zorder = 2, marker="+", s=50)
+        plt.plot(x, y, color="blue")
+
+        if title_description != "": # we're in a general graph so we must precise the title catergory description
+            # Using multiple lines with different font sizes to have the title and the title description on the same line
+            if is_by_name:
+                plt.text(0.55, 1.05, f"{title} -", fontsize=25, ha='right', transform=plt.gca().transAxes)
+                plt.text(0.56, 1.055, title_description, fontsize=15, ha='left', transform=plt.gca().transAxes)
+            else :
+                plt.text(0.5, 1.05, f"{title} -", fontsize=25, ha='right', transform=plt.gca().transAxes)
+                plt.text(0.51, 1.055, title_description, fontsize=15, ha='left', transform=plt.gca().transAxes)
+        else : 
+            plt.title(title, fontsize=20)
+
+        # Modify x-axis to show time in hh:mm format
+        def format_time(value, _):
+            hours = int(value // 3600)
+            minutes = int((value % 3600) // 60)
+            return f"{hours:02d}h{minutes:02d}"
+
+        # Set the x-axis to show time in hh:mm format
+        plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(format_time))
+        plt.gca().invert_xaxis()
+        plt.gca().xaxis.set_tick_params(labelsize=15)        
+        plt.gca().yaxis.set_visible(False)
+
+         # If is_by_name is True, draw the red arrow to show where the result is 
+        if is_by_name and own_time != 0:
+            # Get the corresponding y-value for the team's time on the curve and then creating the arrow pointing toward the value
+            y_own_time = density(own_time)
+            plt.gca().annotate('', xy=(own_time, y_own_time), xytext=(own_time, -0.05), arrowprops=dict(facecolor='red', edgecolor='red', lw=2, linestyle='-'))
+
+        plt.savefig(name_fig, dpi=500)
+
+    # function to create the categories datas and the precomputed pictures for the graphics of those categories
+    def create_pre_computed_pictures(self):
+        if not os.path.exists("Data/Precomputed_graphs"):
+            os.makedirs("Data/Precomputed_graphs")
+        
+        self.get_gaussienne_graph(self.runners["Finish"], "Data/Precomputed_graphs/overall.png", "OVERALL Results", "all runners", False, "")
+        self.get_gaussienne_graph(self.male_runners["Finish"], "Data/Precomputed_graphs/men.png", "MEN Results", "all mens", False, "")
+        self.get_gaussienne_graph(self.female_runners["Finish"], "Data/Precomputed_graphs/women.png", "WOMEN Results", "all womens", False, "")
+        self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/Precomputed_graphs/juh.png", "JUH Results", "mens born between 2006 and 2007", False, "")
+        self.get_gaussienne_graph(self.juf_runners["Finish"], "Data/Precomputed_graphs/juf.png", "JUF Results", "womens born between 2006 and 2007", False, "")
+        self.get_gaussienne_graph(self.esh_runners["Finish"], "Data/Precomputed_graphs/esh.png", "ESH Results", "mens born between 2003 and 2005", False, "")
+        self.get_gaussienne_graph(self.esf_runners["Finish"], "Data/Precomputed_graphs/esf.png", "ESF Results", "womens born between 2003 and 2005", False, "")
+        self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/Precomputed_graphs/seh.png", "SEH Results", "mens born between 1991 and 2002", False, "")
+        self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/Precomputed_graphs/sef.png", "SEF Results", "womens born between 1991 and 2002", False, "")
+        self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/Precomputed_graphs/mah_1.png", "MAH 1 Results", "mens born between 1966 and 1990", False, "")
+        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/Precomputed_graphs/mah_2.png", "MAH 2 Results", "mens born before 1965", False, "")
+        self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/Precomputed_graphs/maf_1.png", "MAF 1 Results", "womens born between 1966 and 1990", False, "")
+        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/Precomputed_graphs/maf_2.png", "MAF 2 Results", "womens born before 1965", False, "")
+ 
+    # function to get specific datas depending on the app queries (looking by name and getting its results by category results, then looking by category if the name is "", don't return anything is name is != "" and no results are found)
+    # the function return the number of results found : 
+    # 0 if no results are found
+    # 1, category_datas
+    # 2, name_datas (non finished runner)
+    # 3, name_datas, overall_datas, category_datas (finished runner by found name)
+    def get_specific_datas(self, name:str, category:str):
+        if name == "": # we're looking for a category datas
+            if category == "MEN":
+                return 1, self.male_runners
+            elif category == "WOMEN":
+                return 1, self.female_runners
+            elif category == "JUH":
+                return 1, self.juh_runners
+            elif category == "JUF":
+                return 1, self.juf_runners
+            elif category == "ESH":
+                return 1, self.esh_runners
+            elif category == "ESF":
+                return 1, self.esf_runners
+            elif category == "SEH":
+                return 1, self.seh_runners
+            elif category == "SEF":
+                return 1, self.sef_runners
+            elif category == "MAH1":
+                return 1, self.mah_1_runners
+            elif category == "MAH2":
+                return 1, self.mah_2_runners
+            elif category == "MAF1":
+                return 1, self.maf_1_runners
+            elif category == "MAF2":
+                return 1, self.maf_2_runners
+            else:
+                return 1, self.runners
+        else: # we're looking for a specific name and we must get its result by category results
+            # split the input name into parts (e.g., "cuel tom" -> ["cuel", "tom"])
+            name_parts = name.lower().split()
+            # check if all parts are contained in the name, regardless of order
+            def remove_accents(text):
+                return ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
+            name_runner = self.runners[self.runners["Name"].apply(lambda x: 
+                all(part in remove_accents(x.lower()) for part in map(remove_accents, name_parts)))]
+
+            if len(name_runner) == 1: # we found an unique runner
+                # this person must have a rank in the overall results, otherwise we can't display the results, it just means that the person didn't finish the race
+                no_rank_overall = name_runner['Rank'].str.contains(' -  ', na=False)
+                no_rank_category = self.runners['Category_Rank'].isna() | (self.runners['Category_Rank'] == "")
+                if not (no_rank_overall.any() or no_rank_category.any()) : # a non finished runner
+                    return 2, name_runner
+                
+                else: # a finished runner
+                    # left figure is the placement of the runner in the overall results
+                    self.get_gaussienne_graph(self.runners["Finish"], "Data/left_figure.png", f"{name_runner["Name"].values[0]} - {name_runner["Rank"].values[0]} / {len(self.runners)} overall", "", True, name_runner["Finish"].values[0])
+                    # right figure is the placement of the runner in the category results
+                    runner_category = name_runner["Category"].values[0]
+                    if runner_category == "JUH" :
+                        self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.juh_runners
+                    elif runner_category == "JUF" :
+                        self.get_gaussienne_graph(self.juf_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juf_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.juf_runners
+                    elif runner_category == "ESH" :
+                        self.get_gaussienne_graph(self.esh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.esh_runners
+                    elif runner_category == "ESF" :
+                        self.get_gaussienne_graph(self.esf_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esf_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.esf_runners
+                    elif runner_category == "SEH" :
+                        self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.seh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.seh_runners
+                    elif runner_category == "SEF" :
+                        self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.sef_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.sef_runners
+                    elif runner_category == "MAH1" :
+                        self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_1_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.mah_1_runners
+                    elif runner_category == "MAH2" :
+                        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_2_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.mah_2_runners
+                    elif runner_category == "MAF1" :
+                        self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_1_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.maf_1_runners
+                    elif runner_category == "MAF2" :
+                        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_2_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.maf_2_runners
+                
+            else: # otherwise, we didn't find any or we found multiple runners, we return none, it will dealt by the graphical interface
+                return 0
+            
+    # function to get the average pace for the half marathon given the finish time
+    def get_average_pace(self, finish_time, distance_km = 21.097):
+        if pd.isna(finish_time) or finish_time == "" or finish_time == "Disqualifié" or finish_time == "None" or finish_time == "Abandon": 
+            return "None"
+        
+        # parse the finish time (e.g., "01:05:56")
+        finish_time_date = datetime.datetime.strptime(finish_time, "%H:%M:%S")
+        
+        # convert total time into minutes
+        total_seconds = (finish_time_date.hour * 3600 + finish_time_date.minute * 60 + finish_time_date.second)
+        total_minutes = total_seconds / 60
+        
+        # calculate the pace (minutes per km) --> distance of the half marathon in kilometers (21.097 km)
+        pace_minutes_per_km = total_minutes / distance_km
+        
+        # extract minutes and seconds from the pace
+        pace_minutes = int(pace_minutes_per_km)
+        pace_seconds = int((pace_minutes_per_km - pace_minutes) * 60)
+        
+        # format the pace as "X'XX"/km
+        pace = f"{pace_minutes}'{pace_seconds:02d}\"/km"
+        
+        return pace
+
+    # get the average pace in seconds per km
+    def get_average_pace(self, time, distance = 21.097):
+        if pd.isna(time) or time == "" or time == "Disqualifié" or time == "None" or time == "Abandon": 
+                return None
+        
+        time_sec = self.time_to_seconds(time)
+        if time_sec is None:
+            return None
+        return time_sec / distance
+
+    # function to read and process the CSV file by adding additional datas
+    def read_and_process_csv(self, csv_path_input: str, csv_path_output : str):
+        # read the CSV file
+        runners = pd.read_csv(csv_path_input, sep=";", header=0, dtype=str)
+
+        # add the average pace column
+        runners["Avg_Pace"] = runners["Finish"].apply(self.get_average_pace)
+
+        distance_intervals = [5, 5, 5, 6.097]  # km intervals
+        pace_columns = ["0_5_pace", "5_10_pace", "10_15_pace", "15_end_pace"]
+        for col in pace_columns:
+            if col not in runners.columns:
+                runners[col] = [np.nan] * len(runners)  # initialize with None or appropriate default
+        # calculate the pace for each interval
+        for runner_index in range(len(runners)):
+            time5 = self.time_to_seconds(runners.loc[runner_index, "5km"])
+            time10 = self.time_to_seconds(runners.loc[runner_index, "10km"])
+            time15 = self.time_to_seconds(runners.loc[runner_index, "15km"])
+            timeFinish = self.time_to_seconds(runners.loc[runner_index, "Finish"])
+
+            # modify the times that are NaN to be a number
+            if time5 == None:
+                if time10 != None:
+                    time5 = time10 / 2
+                elif time15 != None:
+                    time5 = time15 / 3
+                    time10 = time5 * 2
+                elif timeFinish != None:
+                    time5 = 5*(timeFinish) / (distance_intervals[0]+distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+                    time10 = time5 * 2
+                    time15 = time5 * 3
+            
+            if time10 == None:
+                if time5 != None and time15 != None:
+                    time10 = time5 + (time15 - time5) / 2
+                elif time5 != None and timeFinish != None:
+                    time10 = time5 + 5*(timeFinish - time5) / (distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+                    time15 = time5 + 10*(timeFinish - time5) / (distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+                elif time15 != None:
+                    time10 = (time15*2) / 3
+                elif timeFinish != None:
+                    time10 = (timeFinish*10) / (distance_intervals[0]+distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+
+            if time15 == None:
+                if time10 != None and timeFinish != None:
+                    time15 = time10 + 5*(timeFinish - time10) / (distance_intervals[2]+distance_intervals[3])
+                elif time5 != None and timeFinish != None:
+                    time15 = time5 + 10*(timeFinish - time5) / (distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+
+            runners.loc[runner_index, "0_5_pace"] = (time5) / distance_intervals[0] if pd.notna(time5) else np.nan
+            runners.loc[runner_index, "5_10_pace"] = (time10 - time5) / distance_intervals[1] if pd.notna(time10) and pd.notna(time5) else np.nan
+            runners.loc[runner_index, "10_15_pace"] = (time15 - time10) / distance_intervals[2] if pd.notna(time15) and pd.notna(time10) else np.nan
+            runners.loc[runner_index, "15_end_pace"] = (timeFinish - time15) / distance_intervals[3] if pd.notna(timeFinish) and pd.notna(time15) else np.nan
+
+        # adding the pace differences between each 5km interval
+        runners["0_5_10_diff"] = runners["5_10_pace"] - runners["0_5_pace"]
+        runners["5_10_15_diff"] = runners["10_15_pace"] - runners["5_10_pace"]
+        runners["10_15_end_diff"] = runners["15_end_pace"] - runners["10_15_pace"]
+        runners["start_end_diff"] = runners["15_end_pace"] - runners["0_5_pace"]
+        runners["0_5_average_diff"] = runners["0_5_pace"] - runners["Avg_Pace"]
+        runners["5_10_average_diff"] = runners["5_10_pace"] - runners["Avg_Pace"]
+        runners["10_15_average_diff"] = runners["10_15_pace"] - runners["Avg_Pace"]
+        runners["15_end_average_diff"] = runners["15_end_pace"] - runners["Avg_Pace"]
+        runners["10k_diff"] = (runners["15_end_pace"] + runners["10_15_pace"])/2 - (runners["0_5_pace"] + runners["5_10_pace"])/2
+
+        # adding the merged categories and changing the category ranks accordingly
+        category_groups = {
+            "MAH1": ["M0H", "M1H", "M2H", "M3H", "M4H"],
+            "MAF1": ["M0F", "M1F", "M2F", "M3F", "M4F"],
+            "MAH2": ["M5H", "M6H", "M7H", "M8H", "M9H", "M10H"],
+            "MAF2": ["M5F", "M6F", "M7F", "M8F", "M9F", "M10F"]
+        }
+
+        # assign the merged category based on the mapping
+        def get_merged_category(category):
+            for merged_cat, original_cats in category_groups.items():
+                if category in original_cats:
+                    return merged_cat
+            return category  # keep unchanged if not in the mapping
+        
+        # merge the columns that needs to be merged
+        runners["Category"] = runners["Category"].apply(get_merged_category)
+
+        # now we will rerank the runners in the merged categories but only those that have finished
+        valid_finish_time_mask = ~runners['Finish'].isin(["Disqualifié", "None", "Abandon"]) & pd.notna(runners['Finish'])
+        
+        finishers = runners[valid_finish_time_mask].copy()
+        non_finishers = runners[~valid_finish_time_mask].copy()
+
+        mah1_index = 1
+        mah2_index = 1
+        maf1_index = 1
+        maf2_index = 1
+        for runner_index in range(len(finishers)):
+            if finishers.loc[runner_index, "Category"] == "MAH1":
+                finishers.loc[runner_index, "Category_Rank"] = str(mah1_index)
+                mah1_index += 1
+            elif finishers.loc[runner_index, "Category"] == "MAF1":
+                finishers.loc[runner_index, "Category_Rank"] = str(maf1_index)
+                maf1_index += 1
+            elif finishers.loc[runner_index, "Category"] == "MAH2":
+                finishers.loc[runner_index, "Category_Rank"] = str(mah2_index)
+                mah2_index += 1
+            elif finishers.loc[runner_index, "Category"] == "MAF2":
+                finishers.loc[runner_index, "Category_Rank"] = str(maf2_index)
+                maf2_index += 1
+        
+        # saving the runners data in a csv file
+        runners = pd.concat([finishers, non_finishers], ignore_index=True)        
+        runners.to_csv(csv_path_output, sep=";", index=False)
