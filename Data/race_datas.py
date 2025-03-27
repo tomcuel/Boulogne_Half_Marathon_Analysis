@@ -49,7 +49,7 @@ class Race_Datas:
 
         # create the categories datas and pictures
         self.create_categories_datas()
-        self.create_pre_computed_pictures()
+        # self.create_pre_computed_pictures()
 
     # function to create the categories datas
     def create_categories_datas(self):
@@ -147,9 +147,9 @@ class Race_Datas:
         self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/Precomputed_graphs/seh.png", "SEH Results", "mens born between 1991 and 2002", False, "")
         self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/Precomputed_graphs/sef.png", "SEF Results", "womens born between 1991 and 2002", False, "")
         self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/Precomputed_graphs/mah_1.png", "MAH 1 Results", "mens born between 1966 and 1990", False, "")
-        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/Precomputed_graphs/mah_2.png", "MAH 2 Results", "mens born before 1966", False, "")
+        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/Precomputed_graphs/mah_2.png", "MAH 2 Results", "mens born before 1965", False, "")
         self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/Precomputed_graphs/maf_1.png", "MAF 1 Results", "womens born between 1966 and 1990", False, "")
-        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/Precomputed_graphs/maf_2.png", "MAF 2 Results", "womens born before 1966", False, "")
+        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/Precomputed_graphs/maf_2.png", "MAF 2 Results", "womens born before 1965", False, "")
 
     # function to get specific datas depending on the app queries (looking by name and getting its results by category results, then looking by category if the name is "", don't return anything is name is != "" and no results are found)
     # the function return the number of results found : 
@@ -175,13 +175,13 @@ class Race_Datas:
                 return 1, self.seh_runners
             elif category == "SEF":
                 return 1, self.sef_runners
-            elif category == "MAH 1":
+            elif category == "MAH1":
                 return 1, self.mah_1_runners
-            elif category == "MAH 2":
+            elif category == "MAH2":
                 return 1, self.mah_2_runners
-            elif category == "MAF 1":
+            elif category == "MAF1":
                 return 1, self.maf_1_runners
-            elif category == "MAF 2":
+            elif category == "MAF2":
                 return 1, self.maf_2_runners
             else:
                 return 1, self.runners
@@ -220,16 +220,16 @@ class Race_Datas:
                     elif runner_category == "SEF" :
                         self.get_gaussienne_graph(self.sef_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.sef_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.runners, self.sef_runners
-                    elif runner_category == "MAH 1" :
+                    elif runner_category in ["M0H", "M1H", "M2H", "M3H", "M4H"]:
                         self.get_gaussienne_graph(self.mah_1_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_1_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.runners, self.mah_1_runners
-                    elif runner_category == "MAH 2" :
+                    elif runner_category in ["M5H", "M6H", "M7H", "M8H", "M9H", "M10H"]:
                         self.get_gaussienne_graph(self.mah_2_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_2_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.runners, self.mah_2_runners
-                    elif runner_category == "MAF 1" :
+                    elif runner_category in ["M0F", "M1F", "M2F", "M3F", "M4F"]:
                         self.get_gaussienne_graph(self.maf_1_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_1_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.runners, self.maf_1_runners
-                    elif runner_category == "MAF 2" :
+                    elif runner_category in ["M5F", "M6F", "M7F", "M8F", "M9F", "M10F"]:
                         self.get_gaussienne_graph(self.maf_2_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_2_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.runners, self.maf_2_runners
                 
