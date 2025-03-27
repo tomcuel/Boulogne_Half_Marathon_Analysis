@@ -49,7 +49,7 @@ class Race_Datas:
 
         # create the categories datas and pictures
         self.create_categories_datas()
-        # self.create_pre_computed_pictures()
+        #self.create_pre_computed_pictures()
 
     # function to create the categories datas
     def create_categories_datas(self):
