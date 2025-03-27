@@ -1,6 +1,7 @@
 # import the necessary libraries
 import tkinter as tk
 from PIL import Image, ImageTk
+import bcrypt
 
 
 # class to gather some useful functions that are common to multiple screens
@@ -15,6 +16,10 @@ class Utility:
         popup.title(title)
         window_width = 500
         window_height = 250
+        if "Password must" in message:
+            window_width = 1000
+            window_height = 500
+
         screen_width = parent.winfo_screenwidth()
         screen_height = parent.winfo_screenheight()
         position_top = int(screen_height / 2 - window_height / 2)
@@ -72,3 +77,13 @@ class Utility:
         image = Image.open(image_path)
         resized_image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
         return ImageTk.PhotoImage(resized_image)
+    
+    # generate a hashed password
+    def hash_password(password: str) -> bytes:
+        salt = bcrypt.gensalt()  # generate a salt
+        hashed = bcrypt.hashpw(password.encode(), salt)  # hash the password
+        return hashed
+    
+    # verify a password
+    def check_password(password: str, hashed_password: bytes) -> bool:
+        return bcrypt.checkpw(password.encode(), hashed_password)

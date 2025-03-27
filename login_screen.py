@@ -73,8 +73,8 @@ class Login_Screen(tk.Frame):
         # open the database and check if the username and password match
         try:
             conn = sqlite3.connect('Data/App_Database.db')
-            result = conn.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
-            if result:
+            result = conn.execute("SELECT password FROM users WHERE username = ?", (username, )).fetchone()
+            if Utility.check_password(password, result[0]):
                 Utility.show_dismissable_messagebox(self, "Success", "Login successful!", lambda: self.navigate_callback(3))
                 self.clear_user_info()
                 conn.close()

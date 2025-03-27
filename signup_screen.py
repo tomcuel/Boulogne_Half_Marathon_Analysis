@@ -188,17 +188,16 @@ class Signup_Screen(tk.Frame):
 
             # database file path
             db_folder = "Data"
-            db_path = os.path.join(db_folder, "App_Database.db")
             # ensure the database folder exists
             if not os.path.exists(db_folder):
                 os.makedirs(db_folder) 
             # create the database if it doesn't exist
-            if not os.path.exists(db_path):
-                conn = sqlite3.connect(db_path)
-                cursor = conn.cursor()
-                cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
-                conn.commit()
-                conn.close()
+            db_path = os.path.join(db_folder, "App_Database.db")
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
+            conn.commit()
+            conn.close()
 
             # open the database
             conn = sqlite3.connect(db_path)
@@ -212,7 +211,8 @@ class Signup_Screen(tk.Frame):
                 conn.close()
                 return
             # check for duplicate password
-            cursor.execute("SELECT * FROM users WHERE password = ?", (password,))
+            hashed_password = Utility.hash_password(password)
+            cursor.execute("SELECT * FROM users WHERE password = ?", (hashed_password, ))
             existing_password = cursor.fetchone()
             if existing_password:
                 Utility.show_dismissable_messagebox(self, "Error", "This password is already used", lambda: None)
@@ -220,7 +220,7 @@ class Signup_Screen(tk.Frame):
                 return
 
             # if no duplicates found, add new user into the database
-            cursor.execute("INSERT INTO users (title, first_name, last_name, age, nationality, username, password) VALUES (?, ?, ?, ?, ?, ?, ?)",(title, firstname, lastname, age, nationality, username, password))
+            cursor.execute("INSERT INTO users (title, first_name, last_name, age, nationality, username, password) VALUES (?, ?, ?, ?, ?, ?, ?)",(title, firstname, lastname, age, nationality, username, hashed_password))
             conn.commit()
             conn.close()
             # reset the fields after submission
