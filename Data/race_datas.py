@@ -239,7 +239,7 @@ class Race_Datas:
                 return 0
             
     # function to get the average pace for the half marathon given the finish time
-    def get_average_pace(self, finish_time):
+    def get_average_pace(self, finish_time, distance_km = 21.097):
         if pd.isna(finish_time) or finish_time == "" or finish_time == "Disqualifié" or finish_time == "None" or finish_time == "Abandon": 
             return "None"
         
@@ -250,10 +250,7 @@ class Race_Datas:
         total_seconds = (finish_time_date.hour * 3600 + finish_time_date.minute * 60 + finish_time_date.second)
         total_minutes = total_seconds / 60
         
-        # distance of the half marathon in kilometers (21.097 km)
-        distance_km = 21.097
-        
-        # calculate the pace (minutes per km)
+        # calculate the pace (minutes per km) --> distance of the half marathon in kilometers (21.097 km)
         pace_minutes_per_km = total_minutes / distance_km
         
         # extract minutes and seconds from the pace
