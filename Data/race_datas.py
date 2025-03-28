@@ -1,6 +1,7 @@
 # import the necessary libraries
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import datetime
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
@@ -49,12 +50,12 @@ class Race_Datas:
 
         # create the categories datas and pictures
         self.create_categories_datas()
-        #self.create_pre_computed_pictures()
+        self.create_pre_computed_pictures()
 
     # function to create the categories datas
     def create_categories_datas(self):
-        self.male_runners = self.runners[self.runners.apply(lambda x: x["Category"] in ["JUH", "ESH", "SEH", "M0H", "M1H", "M2H", "M3H", "M4H", "M5H", "M6H", "M7H", "M8H", "M9H", "M10H"], axis=1)]
-        self.female_runners = self.runners[self.runners.apply(lambda x: x["Category"] in ["JUF", "ESF", "SEF", "M0F", "M1F", "M2F", "M3F", "M4F", "M5F", "M6F", "M7F", "M8F", "M9F", "M10F"], axis=1)]
+        self.male_runners = self.runners[self.runners["Sex"] == "Homme"]
+        self.female_runners = self.runners[self.runners["Sex"] == "Femme"]
         self.juh_runners = self.runners[self.runners["Category"] == "JUH"]
         self.juf_runners = self.runners[self.runners["Category"] == "JUF"]
         self.esh_runners = self.runners[self.runners["Category"] == "ESH"]
@@ -138,6 +139,7 @@ class Race_Datas:
         if not os.path.exists("Data/Precomputed_graphs"):
             os.makedirs("Data/Precomputed_graphs")
         
+        self.get_gaussienne_graph(self.runners["Finish"], "Data/Precomputed_graphs/overall.png", "OVERALL Results", "all runners", False, "")
         self.get_gaussienne_graph(self.male_runners["Finish"], "Data/Precomputed_graphs/men.png", "MEN Results", "all mens", False, "")
         self.get_gaussienne_graph(self.female_runners["Finish"], "Data/Precomputed_graphs/women.png", "WOMEN Results", "all womens", False, "")
         self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/Precomputed_graphs/juh.png", "JUH Results", "mens born between 2006 and 2007", False, "")
@@ -150,7 +152,7 @@ class Race_Datas:
         self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/Precomputed_graphs/mah_2.png", "MAH 2 Results", "mens born before 1965", False, "")
         self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/Precomputed_graphs/maf_1.png", "MAF 1 Results", "womens born between 1966 and 1990", False, "")
         self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/Precomputed_graphs/maf_2.png", "MAF 2 Results", "womens born before 1965", False, "")
-
+ 
     # function to get specific datas depending on the app queries (looking by name and getting its results by category results, then looking by category if the name is "", don't return anything is name is != "" and no results are found)
     # the function return the number of results found : 
     # 0 if no results are found
@@ -194,45 +196,72 @@ class Race_Datas:
                 # this person must have a rank in the overall results, otherwise we can't display the results, it just means that the person didn't finish the race
                 no_rank_overall = name_runner['Rank'].str.contains(' -  ', na=False)
                 no_rank_category = self.runners['Category_Rank'].isna() | (self.runners['Category_Rank'] == "")
-                if no_rank_overall.any() or no_rank_category.any() : # a non finished runner
+                if not (no_rank_overall.any() or no_rank_category.any()) : # a non finished runner
                     return 2, name_runner
                 
                 else: # a finished runner
                     # left figure is the placement of the runner in the overall results
-                    self.get_gaussienne_graph(self.runners["Finish"], "left_figure.png", f"{name_runner["Name"].values[0]} - {name_runner["Rank"].values[0]} / {len(self.runners)} overall", "", True, name_runner["Finish"].values[0])
+                    self.get_gaussienne_graph(self.runners["Finish"], "Data/left_figure.png", f"{name_runner["Name"].values[0]} - {name_runner["Rank"].values[0]} / {len(self.runners)} overall", "", True, name_runner["Finish"].values[0])
                     # right figure is the placement of the runner in the category results
                     runner_category = name_runner["Category"].values[0]
                     if runner_category == "JUH" :
-                        self.get_gaussienne_graph(self.juh_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juh_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.juh_runners
+                        self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.juh_runners
                     elif runner_category == "JUF" :
-                        self.get_gaussienne_graph(self.juf_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juf_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.juf_runners
+                        self.get_gaussienne_graph(self.juf_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juf_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.juf_runners
                     elif runner_category == "ESH" :
-                        self.get_gaussienne_graph(self.esh_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esh_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.esh_runners
+                        self.get_gaussienne_graph(self.esh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.esh_runners
                     elif runner_category == "ESF" :
-                        self.get_gaussienne_graph(self.esf_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esf_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.esf_runners
+                        self.get_gaussienne_graph(self.esf_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esf_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.esf_runners
                     elif runner_category == "SEH" :
-                        self.get_gaussienne_graph(self.seh_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.seh_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.seh_runners
+                        self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.seh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.seh_runners
                     elif runner_category == "SEF" :
-                        self.get_gaussienne_graph(self.sef_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.sef_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.sef_runners
+                        self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.sef_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.sef_runners
                     elif runner_category in ["M0H", "M1H", "M2H", "M3H", "M4H"]:
-                        self.get_gaussienne_graph(self.mah_1_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_1_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.mah_1_runners
+                        self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_1_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.mah_1_runners
                     elif runner_category in ["M5H", "M6H", "M7H", "M8H", "M9H", "M10H"]:
-                        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_2_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.mah_2_runners
+                        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_2_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.mah_2_runners
                     elif runner_category in ["M0F", "M1F", "M2F", "M3F", "M4F"]:
-                        self.get_gaussienne_graph(self.maf_1_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_1_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.maf_1_runners
+                        self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_1_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.maf_1_runners
                     elif runner_category in ["M5F", "M6F", "M7F", "M8F", "M9F", "M10F"]:
-                        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_2_runners)} by category", "", True, name_runner["Finish"].values[0])
-                        return 3, name_runner, self.runners, self.maf_2_runners
+                        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_2_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        return 3, name_runner, self.maf_2_runners
                 
             else: # otherwise, we didn't find any or we found multiple runners, we return none, it will dealt by the graphical interface
                 return 0
+            
+    # function to get the average pace for the half marathon given the finish time
+    def get_average_pace(self, finish_time):
+        if pd.isna(finish_time) or finish_time == "" or finish_time == "Disqualifié" or finish_time == "None" or finish_time == "Abandon": 
+            return "None"
+        
+        # parse the finish time (e.g., "01:05:56")
+        finish_time_date = datetime.datetime.strptime(finish_time, "%H:%M:%S")
+        
+        # convert total time into minutes
+        total_seconds = (finish_time_date.hour * 3600 + finish_time_date.minute * 60 + finish_time_date.second)
+        total_minutes = total_seconds / 60
+        
+        # distance of the half marathon in kilometers (21.097 km)
+        distance_km = 21.097
+        
+        # calculate the pace (minutes per km)
+        pace_minutes_per_km = total_minutes / distance_km
+        
+        # extract minutes and seconds from the pace
+        pace_minutes = int(pace_minutes_per_km)
+        pace_seconds = int((pace_minutes_per_km - pace_minutes) * 60)
+        
+        # format the pace as "X'XX"/km
+        pace = f"{pace_minutes}'{pace_seconds:02d}\"/km"
+        
+        return pace
 
