@@ -1,5 +1,6 @@
 # import the necessary libraries
 import tkinter as tk
+import pandas as pd
 
 
 # import the class created in other files
@@ -477,14 +478,22 @@ class App_Screen(tk.Frame):
         self.scroll_canvas.destroy()
         self.scrollbar.destroy()
 
-    # create the new header frame with results
+    # create the result header frame
         self.results_header_frame = tk.Frame(self, bg="#282c34", height=40)
         self.results_header_frame.pack(fill="x", side="top")
-        header_labels = ["Rank", "Name", "Category", "Time", "Pace"]
-        for header_text in header_labels:
-            tk.Label(
-                self.results_header_frame, text=header_text, font=("Helvetica", 20), fg="#ffffff", bg="#282c34", anchor="w", padx=5
-            ).pack(side="left", expand=True)
+        # define header labels and their widths
+        col_widths = [3, 14, 3, 5, 5, 5, 5, 5, 5]
+        header_labels = ["Rank", "Name", "Category", "5k ", "10k", "12k", "15k", "Finish", "Avg Pace"]
+        # format headers with fixed widths and centering
+        formatted_headers = [
+            f"{label:^{col_width}}"  # Center-align text within fixed width
+            for label, col_width in zip(header_labels, col_widths)
+        ]
+        # join headers with " | " separator for visual alignment
+        header_text = " | ".join(formatted_headers)
+        tk.Label(
+            self.results_header_frame, text=header_text, font=("Courier", 20), fg="#ffffff", bg="#282c34", anchor="w"
+        ).pack(side="top", fill="x", expand=True, padx=(25, 0))
 
     # create the scrollable frame for results
         self.scroll_canvas = tk.Canvas(self, bg="#282c34", highlightthickness=0)
@@ -499,12 +508,152 @@ class App_Screen(tk.Frame):
         self.scroll_canvas.create_window((0, 40), window=self.scrollable_frame, anchor="nw")
 
     # getting the datas and displaying them in the scrollable frame
-    
-    
+        datas = self.datas.get_specific_datas(name, category)
 
+    # showing the datas in the scrollable frame
+        # category results
+        if datas[0] == 1:
+            picture_width, picture_height = 720, 300
+        # displaying the category graph
+            self.category_graph = None
+            category_graph_paths = {
+                "OVERALL": "overall.png", "MEN": "men.png", "WOMEN": "women.png",
+                "JUH": "juh.png", "JUF": "juf.png", "ESH": "esh.png", "ESF": "esf.png",
+                "SEH": "seh.png", "SEF": "sef.png", "MAH1": "mah_1.png", "MAF1": "maf_1.png",
+                "MAH2": "mah_2.png", "MAF2": "maf_2.png"
+            }
+            if category in category_graph_paths:
+                self.category_graph = Utility.load_resized_image(f"Data/Precomputed_graphs/{category_graph_paths[category]}", picture_width, picture_height)
+            
+            # place the graph at the top
+            if self.category_graph:
+                individual_graph_label = tk.Label(self.scrollable_frame, image=self.category_graph, bg="#282c34")
+                individual_graph_label.grid(row=0, column=0, pady=(20, 10), sticky="nsew")
 
+        # displaying the search result graph
+            col_widths = [10, 24, 15, 10, 10, 10, 10, 12, 10]
+            all_rows_text = ""  # initialize an empty string for all data
+            n = 0
+            for index, (_, row) in enumerate(datas[1].iterrows()):
+                category_string = row["Category"]
+                if pd.isna(category_string):  # handle the "**** Dossard Inconnu" case
+                    category_string = "None"
+                runners_infos = [str(index + 1), row["Name"], category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace(str(row["Finish"]))]
+                # format each field with fixed length (centered)
+                formatted_infos = [f"{info:^{col_width}}" for info, col_width in zip(runners_infos, col_widths)]
+                # create a single row text
+                row_text = " | ".join(formatted_infos)
+                n=len(row_text)
+                # append it to the full text (with newline + separator)
+                all_rows_text += row_text + "\n" + "-" * (n+20) + "\n"
 
+            all_table = "-" * (n+20) + "\n" + all_rows_text
+            # create a single label containing all rows
+            table_label =tk.Label(
+                self.scrollable_frame, text=all_table, font=("Courier", 12),  # Monospaced font
+                justify="left", anchor="w", bg="#f7f7f7",
+            )
+            table_label.grid(row=1, column=0, sticky="nsew", pady=(0, 10))
 
+            # configure single column width
+            self.scrollable_frame.grid_columnconfigure(0, weight=1)
+
+            # putting back the scrollable frame to the top
+            self.scroll_canvas.yview_moveto(0)
+
+        # non finisher result for a runner
+        elif datas[0] == 2:
+            """still to do """
+            # putting back the scrollable frame to the top
+            self.scroll_canvas.yview_moveto(0)
+
+        # search for a specific runner and its category results 
+        elif datas[0] == 3:
+        # getting the graphs
+            picture_width, picture_height = 600, 250
+            self.left_graph = Utility.load_resized_image("Data/left_figure.png", picture_width, picture_height)
+            self.right_graph = Utility.load_resized_image("Data/right_figure.png", picture_width, picture_height)
+           
+        # getting the runner infos 
+            runner_info = datas[1]
+            runner_name = runner_info["Name"].values[0]
+
+        # displaying the search result table with the integrated graphs
+            col_widths = [10, 24, 15, 10, 10, 10, 10, 12, 10]
+            all_rows_text_before = ""  # text before the searched runner
+            searched_runner_text = ""  # text for the searched runner
+            all_rows_text_after = ""  # text after the searched runner
+            n = 0
+            found_searched_runner = False  # flag to indicate if the searched runner is found
+
+            for index, (_, row) in enumerate(datas[2].iterrows()):
+                category_string = row["Category"]
+                if pd.isna(category_string):  # handle the "**** Dossard Inconnu" case
+                    category_string = "None"
+
+                name = row["Name"]
+                runners_infos = [str(index + 1), name, category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace(str(row["Finish"]))]
+                # format each field with fixed length (centered)
+                formatted_infos = [f"{info:^{col_width}}" for info, col_width in zip(runners_infos, col_widths)]
+                # create a single row text
+                row_text = " | ".join(formatted_infos)
+                n=len(row_text)
+
+                # check if this is the searched runner
+                if not found_searched_runner:
+                    if name == runner_name:
+                        # searched runner found
+                        searched_runner_text = row_text
+                        found_searched_runner = True
+                        all_rows_text_after += "-" * (n + 20) + "\n"
+                    else:
+                        all_rows_text_before += row_text + "\n" + "-" * (n + 20) + "\n"
+                else:
+                    all_rows_text_after += row_text + "\n" + "-" * (n + 20) + "\n"
+
+            # create a label for before the searched runner
+            before_table_label = tk.Label(
+                self.scrollable_frame, text=all_rows_text_before, font=("Courier", 12),  # Monospaced font
+                justify="left", anchor="w", bg="#f7f7f7"
+            )
+            before_table_label.grid(row=0, column=0, columnspan=2, sticky="nsew", pady=(0, 10))
+            
+            if self.left_graph and self.right_graph:
+                # create a label for the left graph
+                left_graph_label = tk.Label(self.scrollable_frame, image=self.left_graph, bg="#282c34")
+                left_graph_label.grid(row=1, column=0, pady=(0, 10), sticky="w")
+                # create a label for the right graph
+                right_graph_label = tk.Label(self.scrollable_frame, image=self.right_graph, bg="#282c34")
+                right_graph_label.grid(row=1, column=1, pady=(0, 10), sticky="w")
+
+            # create a label for the searched runner
+            searched_table_label = tk.Label(
+                self.scrollable_frame, text=searched_runner_text, font=("Courier", 12),
+                justify="left", anchor="w", bg="#FFDB58"
+            )
+            searched_table_label.grid(row=2, column=0, columnspan=2, sticky="nsew", pady=(0, 10))
+            # create a label for after the searched runner
+            after_table_label = tk.Label(
+                self.scrollable_frame, text=all_rows_text_after, font=("Courier", 12),
+                justify="left", anchor="w", bg="#f7f7f7"
+            )
+            after_table_label.grid(row=3, column=0, columnspan=2, sticky="nsew", pady=(0, 10))
+
+            # configure row and column weights
+            for i in range(4):
+                self.scrollable_frame.grid_rowconfigure(i, weight=1)
+            for i in range(2):
+                self.scrollable_frame.grid_columnconfigure(i, weight=1)
+
+            # finding the position of the searched search table label to move the scrollable frame on its position
+            self.scroll_canvas.update_idletasks()  # ensure layout calculations are updated
+            searched_runner_y = left_graph_label.winfo_y()-80  # get the Y-position of the figure (-40 to see the man on top)
+            frame_height = self.scrollable_frame.winfo_height()  # get total height of the frame
+            # compute the relative scroll position
+            if frame_height > 0:  # avoid division by zero
+                relative_y = max(0, min(1, searched_runner_y / frame_height))  # normalize between 0 and 1
+                self.scroll_canvas.yview_moveto(relative_y)
+            
     # reset the scollable frame to its initial state (the text and gpx preview)
     def reset_screen(self, event=None):
         # clear the search bar
