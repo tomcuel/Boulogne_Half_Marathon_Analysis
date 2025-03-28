@@ -87,3 +87,4 @@ class Utility:
     # verify a password
     def check_password(password: str, hashed_password: bytes) -> bool:
         return bcrypt.checkpw(password.encode(), hashed_password)
+
