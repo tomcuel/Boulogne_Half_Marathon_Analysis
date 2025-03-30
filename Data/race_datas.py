@@ -1,7 +1,7 @@
 # import the necessary libraries
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import datetime
+import unicodedata
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
@@ -71,10 +71,10 @@ class Race_Datas:
         self.esf_runners = self.runners[self.runners["Category"] == "ESF"]
         self.seh_runners = self.runners[self.runners["Category"] == "SEH"]
         self.sef_runners = self.runners[self.runners["Category"] == "SEF"]
-        self.mah_1_runners = self.runners[self.runners.apply(lambda x: x["Category"] in ["M0H", "M1H", "M2H", "M3H", "M4H"], axis=1)]
-        self.mah_2_runners = self.runners[self.runners.apply(lambda x: x["Category"] in ["M5H", "M6H", "M7H", "M8H", "M9H", "M10H"], axis=1)]
-        self.maf_1_runners = self.runners[self.runners.apply(lambda x: x["Category"] in ["M0F", "M1F", "M2F", "M3F", "M4F"], axis=1)]
-        self.maf_2_runners = self.runners[self.runners.apply(lambda x: x["Category"] in ["M5F", "M6F", "M7F", "M8F", "M9F", "M10F"], axis=1)]
+        self.mah_1_runners = self.runners[self.runners["Category"] == "MAH1"]
+        self.maf_1_runners = self.runners[self.runners["Category"] == "MAF1"]
+        self.mah_2_runners = self.runners[self.runners["Category"] == "MAH2"]
+        self.maf_2_runners = self.runners[self.runners["Category"] == "MAF2"]
     
     # function to get a Gaussian curve from a list of data
     def get_gaussienne_graph(self, list_data, name_fig: str, title: str, title_description: str, is_by_name: bool, own_time: str):
@@ -183,7 +183,11 @@ class Race_Datas:
             # split the input name into parts (e.g., "cuel tom" -> ["cuel", "tom"])
             name_parts = name.lower().split()
             # check if all parts are contained in the name, regardless of order
-            name_runner = self.runners[self.runners["Name"].str.lower().apply(lambda x: all(part in x.lower() for part in name_parts))]
+            def remove_accents(text):
+                return ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
+            name_runner = self.runners[self.runners["Name"].apply(lambda x: 
+                all(part in remove_accents(x.lower()) for part in map(remove_accents, name_parts)))]
+
             if len(name_runner) == 1: # we found an unique runner
                 # this person must have a rank in the overall results, otherwise we can't display the results, it just means that the person didn't finish the race
                 no_rank_overall = name_runner['Rank'].str.contains(' -  ', na=False)
@@ -214,16 +218,16 @@ class Race_Datas:
                     elif runner_category == "SEF" :
                         self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.sef_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.sef_runners
-                    elif runner_category in ["M0H", "M1H", "M2H", "M3H", "M4H"]:
+                    elif runner_category == "MAH1" :
                         self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_1_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.mah_1_runners
-                    elif runner_category in ["M5H", "M6H", "M7H", "M8H", "M9H", "M10H"]:
+                    elif runner_category == "MAH2" :
                         self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_2_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.mah_2_runners
-                    elif runner_category in ["M0F", "M1F", "M2F", "M3F", "M4F"]:
+                    elif runner_category == "MAF1" :
                         self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_1_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.maf_1_runners
-                    elif runner_category in ["M5F", "M6F", "M7F", "M8F", "M9F", "M10F"]:
+                    elif runner_category == "MAF2" :
                         self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_2_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.maf_2_runners
                 
@@ -284,6 +288,7 @@ class Race_Datas:
     def read_and_process_csv(self, csv_path_input: str, csv_path_output : str):
         # read the CSV file
         runners = pd.read_csv(csv_path_input, sep=";", header=0, dtype=str)
+
         # add the average pace column
         runners["Avg_Pace"] = runners["Finish"].apply(self.get_average_pace)
 
@@ -344,7 +349,50 @@ class Race_Datas:
         runners["15_end_average_diff"] = runners["15_end_pace"] - runners["Avg_Pace"]
         runners["10k_diff"] = (runners["15_end_pace"] + runners["10_15_pace"])/2 - (runners["0_5_pace"] + runners["5_10_pace"])/2
 
+        # adding the merged categories and changing the category ranks accordingly
+        category_groups = {
+            "MAH1": ["M0H", "M1H", "M2H", "M3H", "M4H"],
+            "MAF1": ["M0F", "M1F", "M2F", "M3F", "M4F"],
+            "MAH2": ["M5H", "M6H", "M7H", "M8H", "M9H", "M10H"],
+            "MAF2": ["M5F", "M6F", "M7F", "M8F", "M9F", "M10F"]
+        }
+
+        # assign the merged category based on the mapping
+        def get_merged_category(category):
+            for merged_cat, original_cats in category_groups.items():
+                if category in original_cats:
+                    return merged_cat
+            return category  # keep unchanged if not in the mapping
+        
+        # merge the columns that needs to be merged
+        runners["Category"] = runners["Category"].apply(get_merged_category)
+
+        # now we will rerank the runners in the merged categories but only those that have finished
+        valid_finish_time_mask = ~runners['Finish'].isin(["Disqualifié", "None", "Abandon"]) & pd.notna(runners['Finish'])
+        
+        finishers = runners[valid_finish_time_mask].copy()
+        non_finishers = runners[~valid_finish_time_mask].copy()
+
+        mah1_index = 1
+        mah2_index = 1
+        maf1_index = 1
+        maf2_index = 1
+        for runner_index in range(len(finishers)):
+            if finishers.loc[runner_index, "Category"] == "MAH1":
+                finishers.loc[runner_index, "Category_Rank"] = str(mah1_index)
+                mah1_index += 1
+            elif finishers.loc[runner_index, "Category"] == "MAF1":
+                finishers.loc[runner_index, "Category_Rank"] = str(maf1_index)
+                maf1_index += 1
+            elif finishers.loc[runner_index, "Category"] == "MAH2":
+                finishers.loc[runner_index, "Category_Rank"] = str(mah2_index)
+                mah2_index += 1
+            elif finishers.loc[runner_index, "Category"] == "MAF2":
+                finishers.loc[runner_index, "Category_Rank"] = str(maf2_index)
+                maf2_index += 1
+        
         # saving the runners data in a csv file
+        runners = pd.concat([finishers, non_finishers], ignore_index=True)        
         runners.to_csv(csv_path_output, sep=";", index=False)
 
     # function to add clusterization datas to the runners data
