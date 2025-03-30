@@ -1,6 +1,8 @@
 # import the necessary libraries
 import tkinter as tk
 import pandas as pd
+import os
+import sqlite3
 
 
 # import the class created in other files
@@ -35,14 +37,14 @@ class App_Screen(tk.Frame):
         logo_button = tk.Button(
             header_frame, image= self.logo, compound="left", border=0, highlightthickness=0
         )
-        logo_button.place(x=100, y=header_frame.winfo_reqheight() // 2, anchor="center")  
+        logo_button.place(x=50, y=header_frame.winfo_reqheight() // 2, anchor="center")  
         logo_button.bind("<Button-1>", self.reset_screen)
 
     # home label/button
         home_button = tk.Label(
             header_frame, text="Home", font=("Helvetica", 40), bg="#FFDB58", border=0, highlightthickness=0
         )
-        home_button.place(x=300, y=header_frame.winfo_reqheight() // 2, anchor="center") 
+        home_button.place(x=200, y=header_frame.winfo_reqheight() // 2, anchor="center") 
         home_button.bind("<Enter>", lambda event: home_button.config(font=("Helvetica", 50, "bold"), fg="#000000", bg="#FFDB58"))
         home_button.bind("<Leave>", lambda event: home_button.config(font=("Helvetica", 40), fg="#000000", bg="#FFDB58"))
         home_button.bind("<Button-1>", self.reset_screen)
@@ -51,7 +53,7 @@ class App_Screen(tk.Frame):
         results_button = tk.Label(
             header_frame, text="Results", font=("Helvetica", 40), bg="#FFDB58", border=0, highlightthickness=0
         )
-        results_button.place(x=600, y=header_frame.winfo_reqheight() // 2, anchor="center")
+        results_button.place(x=450, y=header_frame.winfo_reqheight() // 2, anchor="center")
         results_button.bind("<Button-1>", self.show_results_menu)
 
     # result sub-menu buttons
@@ -97,24 +99,30 @@ class App_Screen(tk.Frame):
         submenu.bind("<Enter>", show_submenu)
         submenu.bind("<Leave>", hide_submenu)
 
-    # deconnexion button
-        # function to use the dismissable messagebox to ask the user if he really wants to deconnect
-        def deconnexion(event=None):
-            Utility.show_dismissable_messagebox(master, "Deconnexion", "Are you sure you want to deconnect?", lambda: self.navigate_callback(1), duration=4000, is_deconnexion_avorted=True)
-        self.logout_image = Utility.load_resized_image("Data/Pictures/Log_Out.png", 40, 40)
-        logout_button = tk.Button(
-            header_frame, image=self.logout_image, border=0, highlightthickness=0, compound="center"
+    # own person results button
+        own_person_results_button = tk.Label(
+            header_frame, text="My Results", font=("Helvetica", 40), bg="#FFDB58", border=0, highlightthickness=0
         )
-        logout_button.place(x=self.window_width - 100, y=header_frame.winfo_reqheight() // 2, anchor="center")
-        logout_button.bind("<Button-1>", deconnexion)
+        own_person_results_button.place(x=750, y=header_frame.winfo_reqheight() // 2, anchor="center")
+        own_person_results_button.bind("<Enter>", lambda event: own_person_results_button.config(font=("Helvetica", 50, "bold"), fg="#000000", bg="#FFDB58"))
+        own_person_results_button.bind("<Leave>", lambda event: own_person_results_button.config(font=("Helvetica", 40), fg="#000000", bg="#FFDB58"))
+        own_person_results_button.bind("<Button-1>", lambda event: self.show_results(self.get_own_person_results(), ""))
 
     # search bar
         self.search_var = tk.StringVar()
         search_bar = tk.Entry(
             header_frame, textvariable=self.search_var, font=("Helvetica", 20), background="#f7f7f7", highlightbackground="#282c34"
         )
-        search_bar.place(x=self.window_width // 2 + 275, y=header_frame.winfo_reqheight() // 2, anchor="center")
+        search_bar.place(x=self.window_width // 2 + 400, y=header_frame.winfo_reqheight() // 2, anchor="center")
         search_bar.bind("<Return>", self.perform_search)
+
+    # deconnexion button
+        self.logout_image = Utility.load_resized_image("Data/Pictures/Log_Out.png", 40, 40)
+        logout_button = tk.Button(
+            header_frame, image=self.logout_image, border=0, highlightthickness=0, compound="center"
+        )
+        logout_button.place(x=self.window_width - 75, y=header_frame.winfo_reqheight() // 2, anchor="center")
+        logout_button.bind("<Button-1>", self.deconnexion)
 
     # create the scrollable frame for results
         self.scroll_canvas = tk.Canvas(self, bg="#282c34", highlightthickness=0)
@@ -467,7 +475,7 @@ class App_Screen(tk.Frame):
         self.show_results(self.search_var.get().strip(), "")
 
     # function to show the results in the scrollable frame with the associated graphics (use in the submenu button or the perfom search results)
-    def show_results(self, name : str, category : str):
+    def show_results(self, name : str, category : str, event=None):
         # destroy the old scrollable frame (clear old widgets)
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
@@ -511,8 +519,17 @@ class App_Screen(tk.Frame):
         datas = self.datas.get_specific_datas(name, category)
 
     # showing the datas in the scrollable frame
+        if datas == 0:
+            # adding a label to tell the user that there is no result
+            no_result_label = tk.Label(
+                self.scrollable_frame, text="No results found (either no runners or no single runners)", font=("Helvetica", 20), bg="#282c34", fg="#FFFFFF"
+            )
+            no_result_label.pack(pady=(20, 10))
+            # putting back the scrollable frame to the top
+            self.scroll_canvas.yview_moveto(0)
+
         # category results
-        if datas[0] == 1:
+        elif datas[0] == 1:
             picture_width, picture_height = 720, 300
         # displaying the category graph
             self.category_graph = None
@@ -577,6 +594,14 @@ class App_Screen(tk.Frame):
         # getting the runner infos 
             runner_info = datas[1]
             runner_name = runner_info["Name"].values[0]
+        
+        # we need to cut the first datas so there is only a maximun of 400 runners above the runner and 400 below
+            runner_rank = int(runner_info["Category_Rank"].values[0])
+            start_idx = max(0, runner_rank - 400)
+            end_idx = min(len(datas[2]), runner_rank + 401) 
+            # Truncate the dataset
+            window_runners = datas[2].iloc[start_idx:end_idx]
+
 
         # displaying the search result table with the integrated graphs
             col_widths = [10, 24, 15, 10, 10, 10, 10, 12, 10]
@@ -586,13 +611,13 @@ class App_Screen(tk.Frame):
             n = 0
             found_searched_runner = False  # flag to indicate if the searched runner is found
 
-            for index, (_, row) in enumerate(datas[2].iterrows()):
+            for index, (_, row) in enumerate(window_runners.iterrows()):
                 category_string = row["Category"]
                 if pd.isna(category_string):  # handle the "**** Dossard Inconnu" case
                     category_string = "None"
 
                 name = row["Name"]
-                runners_infos = [str(index + 1), name, category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace_str(str(row["Finish"]))]
+                runners_infos = [str(row["Category_Rank"]), name, category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace_str(str(row["Finish"]))]
                 # format each field with fixed length (centered)
                 formatted_infos = [f"{info:^{col_width}}" for info, col_width in zip(runners_infos, col_widths)]
                 # create a single row text
@@ -733,4 +758,26 @@ class App_Screen(tk.Frame):
             button.config(font=("Helvetica", 30, "bold"))
         else:
             button.config(font=("Helvetica", 20))
+
+    # function to use the dismissable messagebox to ask the user if he really wants to deconnect
+    def deconnexion(self, event=None):
+        Utility.show_dismissable_messagebox(self.master, "Deconnexion", "Are you sure you want to deconnect?", lambda: self.navigate_callback(1), duration=4000, is_deconnexion_avorted=True)
+        self.reset_screen()
+    
+    # return the first name and last name of the user that is connected
+    def get_own_person_results(event=None):
+        # database file path
+        db_folder = "Data/Databases/"
+        # ensure the database folder exists
+        if not os.path.exists(db_folder):
+            os.makedirs(db_folder) 
+        # create the database if it doesn't exist
+        db_path = os.path.join(db_folder, "App_Database.db")
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        # creating the users table if it doesn't exist
+        cursor.execute("SELECT first_name, last_name FROM users WHERE connection_status = 1")
+        result = cursor.fetchone()
+        conn.close()
+        return f"{result[0]} {result[1]}"
 

@@ -195,7 +195,7 @@ class Signup_Screen(tk.Frame):
             db_path = os.path.join(db_folder, "App_Database.db")
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, connection_status INTEGER CHECK (connection_status IN (0, 1)), title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
             conn.commit()
             conn.close()
 
@@ -220,7 +220,7 @@ class Signup_Screen(tk.Frame):
                 return
 
             # if no duplicates found, add new user into the database
-            cursor.execute("INSERT INTO users (title, first_name, last_name, age, nationality, username, password) VALUES (?, ?, ?, ?, ?, ?, ?)",(title, firstname, lastname, age, nationality, username, hashed_password))
+            cursor.execute("INSERT INTO users (connection_status, title, first_name, last_name, age, nationality, username, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",(0, title, firstname, lastname, age, nationality, username, hashed_password))
             conn.commit()
             conn.close()
             # reset the fields after submission

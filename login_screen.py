@@ -88,13 +88,16 @@ class Login_Screen(tk.Frame):
         try:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
+            # creating the users table if it doesn't exist
+            cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, connection_status INTEGER CHECK (connection_status IN (0, 1)), title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
             conn.commit()
-            conn.close()
-
-            conn = sqlite3.connect(db_path)
+            
             result = conn.execute("SELECT password FROM users WHERE username = ?", (username, )).fetchone()
             if Utility.check_password(password, result[0]):
+                # update connection_status to 1
+                cursor.execute("UPDATE users SET connection_status = 1 WHERE username = ?", (username,))
+                conn.commit()
+
                 Utility.show_dismissable_messagebox(self, "Success", "Login successful!", lambda: self.navigate_callback(3))
                 self.clear_user_info()
                 conn.close()

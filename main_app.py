@@ -1,6 +1,7 @@
 # import the necessary libraries
 import tkinter as tk
 from tkinter import PhotoImage
+import sqlite3  
 
 
 # import the class created in other files
@@ -42,7 +43,7 @@ class Main_App:
             screen.grid(row=0, column=0, sticky="nsew")
 
         # start with the first screen
-        self.current_screen = 3
+        self.current_screen = 1
         self.show_screen(self.current_screen)
 
         # bind keyboard inputs
@@ -71,5 +72,14 @@ class Main_App:
 
     # function to quit the app
     def quit_game(self, event=None):
+        conn = sqlite3.connect("Data/Databases/App_database.db")
+        cursor = conn.cursor()
+        # creating the users table if it doesn't exist
+        cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, connection_status INTEGER CHECK (connection_status IN (0, 1)), title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
+        conn.commit()
+        # set connection_status to 0 for all users
+        cursor.execute("UPDATE users SET connection_status = 0")
+        conn.commit()
+        conn.close()
         self.window.quit()
 
