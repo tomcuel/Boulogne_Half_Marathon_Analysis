@@ -59,7 +59,7 @@ class Race_Datas:
 
         # create the categories datas and pictures
         self.create_categories_datas()
-        #self.create_pre_computed_pictures()
+        self.create_pre_computed_pictures()
 
     # function to create the categories datas
     def create_categories_datas(self):
@@ -131,19 +131,20 @@ class Race_Datas:
         if not os.path.exists("Data/Precomputed_graphs"):
             os.makedirs("Data/Precomputed_graphs")
         
-        self.get_gaussienne_graph(self.runners["Finish"], "Data/Precomputed_graphs/overall.png", "OVERALL Results", "all runners", False, "")
-        self.get_gaussienne_graph(self.male_runners["Finish"], "Data/Precomputed_graphs/men.png", "MEN Results", "all mens", False, "")
-        self.get_gaussienne_graph(self.female_runners["Finish"], "Data/Precomputed_graphs/women.png", "WOMEN Results", "all womens", False, "")
-        self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/Precomputed_graphs/juh.png", "JUH Results", "mens born between 2006 and 2007", False, "")
-        self.get_gaussienne_graph(self.juf_runners["Finish"], "Data/Precomputed_graphs/juf.png", "JUF Results", "womens born between 2006 and 2007", False, "")
-        self.get_gaussienne_graph(self.esh_runners["Finish"], "Data/Precomputed_graphs/esh.png", "ESH Results", "mens born between 2003 and 2005", False, "")
-        self.get_gaussienne_graph(self.esf_runners["Finish"], "Data/Precomputed_graphs/esf.png", "ESF Results", "womens born between 2003 and 2005", False, "")
-        self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/Precomputed_graphs/seh.png", "SEH Results", "mens born between 1991 and 2002", False, "")
-        self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/Precomputed_graphs/sef.png", "SEF Results", "womens born between 1991 and 2002", False, "")
-        self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/Precomputed_graphs/mah_1.png", "MAH 1 Results", "mens born between 1966 and 1990", False, "")
-        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/Precomputed_graphs/mah_2.png", "MAH 2 Results", "mens born before 1965", False, "")
-        self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/Precomputed_graphs/maf_1.png", "MAF 1 Results", "womens born between 1966 and 1990", False, "")
-        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/Precomputed_graphs/maf_2.png", "MAF 2 Results", "womens born before 1965", False, "")
+        if not os.path.exists("Data/Precomputed_graphs/overall.png"):
+            self.get_gaussienne_graph(self.runners["Finish"], "Data/Precomputed_graphs/overall.png", "OVERALL Results", "all runners", False, "")
+            self.get_gaussienne_graph(self.male_runners["Finish"], "Data/Precomputed_graphs/men.png", "MEN Results", "all mens", False, "")
+            self.get_gaussienne_graph(self.female_runners["Finish"], "Data/Precomputed_graphs/women.png", "WOMEN Results", "all womens", False, "")
+            self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/Precomputed_graphs/juh.png", "JUH Results", "mens born between 2006 and 2007", False, "")
+            self.get_gaussienne_graph(self.juf_runners["Finish"], "Data/Precomputed_graphs/juf.png", "JUF Results", "womens born between 2006 and 2007", False, "")
+            self.get_gaussienne_graph(self.esh_runners["Finish"], "Data/Precomputed_graphs/esh.png", "ESH Results", "mens born between 2003 and 2005", False, "")
+            self.get_gaussienne_graph(self.esf_runners["Finish"], "Data/Precomputed_graphs/esf.png", "ESF Results", "womens born between 2003 and 2005", False, "")
+            self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/Precomputed_graphs/seh.png", "SEH Results", "mens born between 1991 and 2002", False, "")
+            self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/Precomputed_graphs/sef.png", "SEF Results", "womens born between 1991 and 2002", False, "")
+            self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/Precomputed_graphs/mah_1.png", "MAH 1 Results", "mens born between 1966 and 1990", False, "")
+            self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/Precomputed_graphs/mah_2.png", "MAH 2 Results", "mens born before 1965", False, "")
+            self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/Precomputed_graphs/maf_1.png", "MAF 1 Results", "womens born between 1966 and 1990", False, "")
+            self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/Precomputed_graphs/maf_2.png", "MAF 2 Results", "womens born before 1965", False, "")
  
     # function to get specific datas depending on the app queries (looking by name and getting its results by category results, then looking by category if the name is "", don't return anything is name is != "" and no results are found)
     # the function return the number of results found : 
