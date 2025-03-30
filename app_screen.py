@@ -486,7 +486,7 @@ class App_Screen(tk.Frame):
         header_labels = ["Rank", "Name", "Category", "5k ", "10k", "12k", "15k", "Finish", "Avg Pace"]
         # format headers with fixed widths and centering
         formatted_headers = [
-            f"{label:^{col_width}}"  # Center-align text within fixed width
+            f"{label:^{col_width}}"  # center-align text within fixed width
             for label, col_width in zip(header_labels, col_widths)
         ]
         # join headers with " | " separator for visual alignment
@@ -538,7 +538,7 @@ class App_Screen(tk.Frame):
                 category_string = row["Category"]
                 if pd.isna(category_string):  # handle the "**** Dossard Inconnu" case
                     category_string = "None"
-                runners_infos = [str(index + 1), row["Name"], category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace(str(row["Finish"]))]
+                runners_infos = [str(index + 1), row["Name"], category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace_str(str(row["Finish"]))]
                 # format each field with fixed length (centered)
                 formatted_infos = [f"{info:^{col_width}}" for info, col_width in zip(runners_infos, col_widths)]
                 # create a single row text
@@ -550,7 +550,7 @@ class App_Screen(tk.Frame):
             all_table = "-" * (n+20) + "\n" + all_rows_text
             # create a single label containing all rows
             table_label =tk.Label(
-                self.scrollable_frame, text=all_table, font=("Courier", 12),  # Monospaced font
+                self.scrollable_frame, text=all_table, font=("Courier", 12),  # monospaced font
                 justify="left", anchor="w", bg="#f7f7f7",
             )
             table_label.grid(row=1, column=0, sticky="nsew", pady=(0, 10))
@@ -592,7 +592,7 @@ class App_Screen(tk.Frame):
                     category_string = "None"
 
                 name = row["Name"]
-                runners_infos = [str(index + 1), name, category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace(str(row["Finish"]))]
+                runners_infos = [str(index + 1), name, category_string, str(row["5km"]), str(row["10km"]), str(row["12km"]), str(row["15km"]), str(row["Finish"]), self.datas.get_average_pace_str(str(row["Finish"]))]
                 # format each field with fixed length (centered)
                 formatted_infos = [f"{info:^{col_width}}" for info, col_width in zip(runners_infos, col_widths)]
                 # create a single row text
@@ -613,7 +613,7 @@ class App_Screen(tk.Frame):
 
             # create a label for before the searched runner
             before_table_label = tk.Label(
-                self.scrollable_frame, text=all_rows_text_before, font=("Courier", 12),  # Monospaced font
+                self.scrollable_frame, text=all_rows_text_before, font=("Courier", 12),  # monospaced font
                 justify="left", anchor="w", bg="#f7f7f7"
             )
             before_table_label.grid(row=0, column=0, columnspan=2, sticky="nsew", pady=(0, 10))

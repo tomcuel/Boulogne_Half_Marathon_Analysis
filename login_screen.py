@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import sqlite3
+import os
 
 
 # import the class created in other files
@@ -72,7 +73,20 @@ class Login_Screen(tk.Frame):
 
         # open the database and check if the username and password match
         try:
-            conn = sqlite3.connect('Data/App_Database.db')
+            # database file path
+            db_folder = "Data/Databases/"
+            # ensure the database folder exists
+            if not os.path.exists(db_folder):
+                os.makedirs(db_folder) 
+            # create the database if it doesn't exist
+            db_path = os.path.join(db_folder, "App_Database.db")
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, first_name TEXT, last_name TEXT, age INTEGER, nationality TEXT, username TEXT UNIQUE, password TEXT UNIQUE)")
+            conn.commit()
+            conn.close()
+
+            conn = sqlite3.connect(db_path)
             result = conn.execute("SELECT password FROM users WHERE username = ?", (username, )).fetchone()
             if Utility.check_password(password, result[0]):
                 Utility.show_dismissable_messagebox(self, "Success", "Login successful!", lambda: self.navigate_callback(3))

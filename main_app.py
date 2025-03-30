@@ -17,7 +17,7 @@ class Main_App:
     def __init__(self, window):
 
         # getting all the Half-Marathon datas
-        data = Race_Datas("Data/App_Database.db")
+        data = Race_Datas("Data/Databases/App_Database.db")
 
         self.window = window
         self.window.title("Multi-Screen Scrollable App")
@@ -72,3 +72,4 @@ class Main_App:
     # function to quit the app
     def quit_game(self, event=None):
         self.window.quit()
+

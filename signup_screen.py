@@ -187,7 +187,7 @@ class Signup_Screen(tk.Frame):
                 return
 
             # database file path
-            db_folder = "Data"
+            db_folder = "Data/Databases/"
             # ensure the database folder exists
             if not os.path.exists(db_folder):
                 os.makedirs(db_folder) 
