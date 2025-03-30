@@ -7,6 +7,8 @@ import pandas as pd
 from scipy.stats import gaussian_kde
 import sqlite3
 import os
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
 
 # class to get the datas pre formatted for the application graphics + leaderboard showing
@@ -14,7 +16,6 @@ class Race_Datas:
     
     # initialize the class with the file path
     def __init__(self, file_path: str) :
-        csv_path = "Data/raw_race_data.csv"
         # connect to the database
         conn = sqlite3.connect(file_path)
         cursor = conn.cursor()
@@ -28,9 +29,17 @@ class Race_Datas:
             query = "SELECT * FROM runners"
             self.runners = pd.read_sql(query, conn)
         else:
+            csv_path_input = "Data/Databases/raw_race_data.csv"
+            csv_path_intermediate = "Data/Databases/treated_runners_data.csv"
+            csv_path_output = "Data/Databases/analyzed_race_datas.csv"
             # load data from the CSV and insert into the database
-            if os.path.exists(csv_path):
-                self.runners = pd.read_csv(csv_path, sep=";", header=0, dtype=str)
+            if os.path.exists(csv_path_input):
+                # read and process the CSV file
+                self.read_and_process_csv(csv_path_input, csv_path_intermediate)
+                # add the clusterization datas to the runners data
+                self.clusterize_datas(csv_path_intermediate, csv_path_output)
+                # read the processed CSV file
+                self.runners = pd.read_csv(csv_path_output, sep=";", header=0, dtype=str)
                 # create the runners table
                 cursor.execute("""
                     CREATE TABLE runners (
@@ -45,12 +54,12 @@ class Race_Datas:
                 # insert the data into the database
                 self.runners.to_sql("runners", conn, if_exists="replace", index=False)
             else:
-                raise FileNotFoundError(f"CSV file '{csv_path}' not found.")
+                raise FileNotFoundError(f"CSV file '{csv_path_input}' not found.")
         conn.close()
 
         # create the categories datas and pictures
         self.create_categories_datas()
-        self.create_pre_computed_pictures()
+        #self.create_pre_computed_pictures()
 
     # function to create the categories datas
     def create_categories_datas(self):
@@ -70,34 +79,17 @@ class Race_Datas:
     # function to get a Gaussian curve from a list of data
     def get_gaussienne_graph(self, list_data, name_fig: str, title: str, title_description: str, is_by_name: bool, own_time: str):
         
-        # Convert list_data from HH:MM:SS to total seconds
-        def time_to_seconds(time_str):
-            """Convert time from HH:MM:SS or MM:SS format to total seconds"""
-            if pd.isna(time_str) or time_str == "":
-                return None  # Keep missing values as None
-            
-            parts = time_str.split(":")
-            
-            if len(parts) == 3:  # HH:MM:SS format
-                h, m, s = map(int, parts)
-            elif len(parts) == 2:  # MM:SS format (assume 0 hours)
-                h, m, s = 0, int(parts[0]), int(parts[1])
-            else:
-                return None  # Invalid format : DSQ, DNF, DNS, etc.
+        list_data = list_data.dropna().apply(self.time_to_seconds).dropna().astype(float)
 
-            return h * 3600 + m * 60 + s
-        
-        list_data = list_data.dropna().apply(time_to_seconds).dropna().astype(float)
+        # convert own_time to seconds if provided
+        own_time = self.time_to_seconds(own_time)
 
-        # Convert own_time to seconds if provided
-        own_time = time_to_seconds(own_time)
-
-        # Create the Gaussian curve
+        # create the Gaussian curve
         density = gaussian_kde(list_data)
         x = np.linspace(min(list_data), max(list_data), 1000)
         y = density(x)
 
-        # Create the graph
+        # create the graph
         plt.clf()
         plt.figure(figsize=(12, 5))
         plt.scatter(list_data, density(list_data), color="red", zorder = 2, marker="+", s=50)
@@ -114,21 +106,21 @@ class Race_Datas:
         else : 
             plt.title(title, fontsize=20)
 
-        # Modify x-axis to show time in hh:mm format
+        # modify x-axis to show time in hh:mm format
         def format_time(value, _):
             hours = int(value // 3600)
             minutes = int((value % 3600) // 60)
             return f"{hours:02d}h{minutes:02d}"
 
-        # Set the x-axis to show time in hh:mm format
+        # set the x-axis to show time in hh:mm format
         plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(format_time))
         plt.gca().invert_xaxis()
         plt.gca().xaxis.set_tick_params(labelsize=15)        
         plt.gca().yaxis.set_visible(False)
 
-         # If is_by_name is True, draw the red arrow to show where the result is 
+         # if is_by_name is True, draw the red arrow to show where the result is 
         if is_by_name and own_time != 0:
-            # Get the corresponding y-value for the team's time on the curve and then creating the arrow pointing toward the value
+            # get the corresponding y-value for the team's time on the curve and then creating the arrow pointing toward the value
             y_own_time = density(own_time)
             plt.gca().annotate('', xy=(own_time, y_own_time), xytext=(own_time, -0.05), arrowprops=dict(facecolor='red', edgecolor='red', lw=2, linestyle='-'))
 
@@ -237,17 +229,33 @@ class Race_Datas:
                 
             else: # otherwise, we didn't find any or we found multiple runners, we return none, it will dealt by the graphical interface
                 return 0
-            
+
+    # convert list_data from HH:MM:SS to total seconds
+    def time_to_seconds(self, time_str):
+        """Convert time from HH:MM:SS or MM:SS format to total seconds"""
+        if pd.isna(time_str) or time_str == "":
+            return None  # keep missing values as None
+        
+        parts = time_str.split(":")
+        
+        if len(parts) == 3:  # HH:MM:SS format
+            h, m, s = map(int, parts)
+        elif len(parts) == 2:  # MM:SS format (assume 0 hours)
+            h, m, s = 0, int(parts[0]), int(parts[1])
+        else:
+            return None  # invalid format : DSQ, DNF, DNS, etc.
+
+        return h * 3600 + m * 60 + s
+          
     # function to get the average pace for the half marathon given the finish time
-    def get_average_pace(self, finish_time, distance_km = 21.097):
+    def get_average_pace_str(self, finish_time, distance_km = 21.097):
         if pd.isna(finish_time) or finish_time == "" or finish_time == "Disqualifié" or finish_time == "None" or finish_time == "Abandon": 
             return "None"
         
         # parse the finish time (e.g., "01:05:56")
-        finish_time_date = datetime.datetime.strptime(finish_time, "%H:%M:%S")
+        total_seconds = self.time_to_seconds(finish_time)
         
         # convert total time into minutes
-        total_seconds = (finish_time_date.hour * 3600 + finish_time_date.minute * 60 + finish_time_date.second)
         total_minutes = total_seconds / 60
         
         # calculate the pace (minutes per km) --> distance of the half marathon in kilometers (21.097 km)
@@ -262,3 +270,182 @@ class Race_Datas:
         
         return pace
 
+    # get the average pace in seconds per km
+    def get_average_pace(self, time, distance = 21.097):
+        if pd.isna(time) or time == "" or time == "Disqualifié" or time == "None" or time == "Abandon": 
+                return None
+        
+        time_sec = self.time_to_seconds(time)
+        if time_sec is None:
+            return None
+        return time_sec / distance
+
+    # function to read and process the CSV file by adding additional datas
+    def read_and_process_csv(self, csv_path_input: str, csv_path_output : str):
+        # read the CSV file
+        runners = pd.read_csv(csv_path_input, sep=";", header=0, dtype=str)
+        # add the average pace column
+        runners["Avg_Pace"] = runners["Finish"].apply(self.get_average_pace)
+
+        distance_intervals = [5, 5, 5, 6.097]  # km intervals
+        pace_columns = ["0_5_pace", "5_10_pace", "10_15_pace", "15_end_pace"]
+        for col in pace_columns:
+            if col not in runners.columns:
+                runners[col] = [np.nan] * len(runners)  # initialize with None or appropriate default
+        # calculate the pace for each interval
+        for runner_index in range(len(runners)):
+            time5 = self.time_to_seconds(runners.loc[runner_index, "5km"])
+            time10 = self.time_to_seconds(runners.loc[runner_index, "10km"])
+            time15 = self.time_to_seconds(runners.loc[runner_index, "15km"])
+            timeFinish = self.time_to_seconds(runners.loc[runner_index, "Finish"])
+
+            # modify the times that are NaN to be a number
+            if time5 == None:
+                if time10 != None:
+                    time5 = time10 / 2
+                elif time15 != None:
+                    time5 = time15 / 3
+                    time10 = time5 * 2
+                elif timeFinish != None:
+                    time5 = 5*(timeFinish) / (distance_intervals[0]+distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+                    time10 = time5 * 2
+                    time15 = time5 * 3
+            
+            if time10 == None:
+                if time5 != None and time15 != None:
+                    time10 = time5 + (time15 - time5) / 2
+                elif time5 != None and timeFinish != None:
+                    time10 = time5 + 5*(timeFinish - time5) / (distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+                    time15 = time5 + 10*(timeFinish - time5) / (distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+                elif time15 != None:
+                    time10 = (time15*2) / 3
+                elif timeFinish != None:
+                    time10 = (timeFinish*10) / (distance_intervals[0]+distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+
+            if time15 == None:
+                if time10 != None and timeFinish != None:
+                    time15 = time10 + 5*(timeFinish - time10) / (distance_intervals[2]+distance_intervals[3])
+                elif time5 != None and timeFinish != None:
+                    time15 = time5 + 10*(timeFinish - time5) / (distance_intervals[1]+distance_intervals[2]+distance_intervals[3])
+
+            runners.loc[runner_index, "0_5_pace"] = (time5) / distance_intervals[0] if pd.notna(time5) else np.nan
+            runners.loc[runner_index, "5_10_pace"] = (time10 - time5) / distance_intervals[1] if pd.notna(time10) and pd.notna(time5) else np.nan
+            runners.loc[runner_index, "10_15_pace"] = (time15 - time10) / distance_intervals[2] if pd.notna(time15) and pd.notna(time10) else np.nan
+            runners.loc[runner_index, "15_end_pace"] = (timeFinish - time15) / distance_intervals[3] if pd.notna(timeFinish) and pd.notna(time15) else np.nan
+
+        # adding the pace differences between each 5km interval
+        runners["0_5_10_diff"] = runners["5_10_pace"] - runners["0_5_pace"]
+        runners["5_10_15_diff"] = runners["10_15_pace"] - runners["5_10_pace"]
+        runners["10_15_end_diff"] = runners["15_end_pace"] - runners["10_15_pace"]
+        runners["start_end_diff"] = runners["15_end_pace"] - runners["0_5_pace"]
+        runners["0_5_average_diff"] = runners["0_5_pace"] - runners["Avg_Pace"]
+        runners["5_10_average_diff"] = runners["5_10_pace"] - runners["Avg_Pace"]
+        runners["10_15_average_diff"] = runners["10_15_pace"] - runners["Avg_Pace"]
+        runners["15_end_average_diff"] = runners["15_end_pace"] - runners["Avg_Pace"]
+        runners["10k_diff"] = (runners["15_end_pace"] + runners["10_15_pace"])/2 - (runners["0_5_pace"] + runners["5_10_pace"])/2
+
+        # saving the runners data in a csv file
+        runners.to_csv(csv_path_output, sep=";", index=False)
+
+    # function to add clusterization datas to the runners data
+    def clusterize_datas(self, csv_path_input: str, csv_path_output : str):
+        # 1. Load the runners data
+        runners = pd.read_csv(csv_path_input, sep=";", header=0, dtype=str)
+        # filter out runners with invalid or missing finish times (handled separately)
+        valid_finish_time_mask = ~runners['Finish'].isin(["Disqualifié", "None", "Abandon"]) & pd.notna(runners['Finish'])
+        df = runners[valid_finish_time_mask].copy()
+
+        # 2. Define relevant datas for clustering
+        # define the relevant columns 
+        learning_columns = ["0_5_average_diff", "5_10_average_diff", "10_15_average_diff", "15_end_average_diff", "0_5_10_diff", "5_10_15_diff", "10_15_end_diff", "start_end_diff", "10k_diff"]
+        # extract the features
+        X = df[learning_columns]
+        # normalize the features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        # 3. Apply K-Means clustering for n clusters
+        def apply_kmeans(X, nb_clusters):
+            """Apply KMeans clustering to the data and return the cluster labels."""
+            kmeans = KMeans(n_clusters=nb_clusters, init="k-means++", n_init=10, random_state=42)
+            df.loc[X.index, f"Cluster_{nb_clusters}"] = kmeans.fit_predict(X_scaled)
+
+            # associating each cluster with a label thanks to data visualization and my own knowledge and analysis
+            # plot clustering results
+            fig, axes = plt.subplots(3, 2, figsize=(12, 12)) 
+            fig.suptitle(f"KMeans Clustering with {nb_clusters} Clusters", fontsize=16)
+
+            # first plot: Difference between first5km and last5km pace
+            scatter1 = axes[0, 0].scatter(X_scaled[:, 0], X_scaled[:, 3], c=df[f"Cluster_{nb_clusters}"].astype(int), cmap="viridis")
+            axes[0, 0].set_xlabel(learning_columns[0])
+            axes[0, 0].set_ylabel(learning_columns[3])
+            axes[0, 0].set_title("First5km vs Last5km")
+
+            # second plot: difference between the first10km-->last11km and the first5km-->last5km pace
+            scatter2 = axes[0, 1].scatter(X_scaled[:, 7], X_scaled[:, 8], c=df[f"Cluster_{nb_clusters}"].astype(int), cmap="viridis")
+            axes[0, 1].set_xlabel(learning_columns[7])
+            axes[0, 1].set_ylabel(learning_columns[8])
+            axes[0, 1].set_title("First5km-->Last5km vs First10km-->Last11km")
+
+            # 1D projection plots with separate lines for each cluster
+            for i, col_idx in enumerate([0, 1, 2, 3]):
+                row = 1 + i // 2
+                col = i % 2
+                # assign unique y-values to each cluster
+                cluster_labels = df[f"Cluster_{nb_clusters}"].astype(int)
+                y_values = cluster_labels  # each cluster gets a different line
+                scatter = axes[row, col].scatter(X_scaled[:, col_idx], y_values, c=cluster_labels, cmap="viridis")
+                axes[row, col].set_xlabel(learning_columns[col_idx])
+                axes[row, col].set_ylabel("Cluster Label (Separated)")
+                axes[row, col].set_title(f"{learning_columns[col_idx]} vs Cluster")
+
+            # create a separate axis for the colorbar on the far right
+            cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
+            cbar = fig.colorbar(scatter2, cax=cbar_ax)
+            cbar.set_label("Cluster Label")
+
+            # adjust layout
+            plt.tight_layout(rect=[0, 0, 0.9, 0.96])  #lLeave space for suptitle and adjust for the colorbar
+            plt.savefig(f"Data/Precomputed_graphs/Kmeans_{nb_clusters}_clusters.png")
+
+            if nb_clusters == 5:
+                cluster_5_labels = {
+                    0: "Positive Split", # slows down at each interval by a small amount
+                    3: "Strong Starter", # starts really fast compared to the average
+                    1: "Negative Split", # accelerates at each interval by a small amount
+                    4: "Fast Finisher", # ends really fast compared to the average
+                    2: "Consistent", # stays almost at the same pace at each interval
+                }
+                df["Cluster_5_Label"] = df["Cluster_5"].map(cluster_5_labels)
+
+                # get the number of runners in each cluster
+                cluster_counts = df["Cluster_5_Label"].value_counts()
+                print("5 Clusters counts:")
+                print(cluster_counts)
+                print("\n")
+
+            else : 
+                cluster_9_labels = {
+                    3: "Strong Starter", # starts really fast compared to the average and the last 16 km
+                    5: "Bad Starter", # starts really slow compared to the average and the last 16 km
+                    4: "Fast Finisher", # ends really fast compared to the average and the first 15 km
+                    6: "Bad Finisher", # ends really slow compared to the average and the first 15 km
+                    0: "Positive Split", # slows down at each interval by a small amount
+                    1: "Negative Split", # accelerates at each interval by a small amount
+                    2: "Consistent", # stays almost at the same pace at each interval
+                    7: "Mid-Race accellerator", # start and end 5k slow compared to the middle 10k
+                    8: "Mid-Race decelerator" # start and end 5k fast compared to the middle 10k
+                }
+                df["Cluster_9_Label"] = df["Cluster_9"].map(cluster_9_labels)
+
+                cluster_counts = df[f"Cluster_9_Label"].value_counts()
+                print(f"{nb_clusters} Clusters counts:")
+                print(cluster_counts)
+                print("\n")
+
+        # applying this to the wanted categories
+        apply_kmeans(X, 5)
+        apply_kmeans(X, 9)
+
+        # 5. Save results 
+        df.to_csv(csv_path_output, sep=";", index=False)
