@@ -201,34 +201,34 @@ class Race_Datas:
                     # right figure is the placement of the runner in the category results
                     runner_category = name_runner["Category"].values[0]
                     if runner_category == "JUH" :
-                        self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.juh_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.juh_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.juh_runners
                     elif runner_category == "JUF" :
-                        self.get_gaussienne_graph(self.juf_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.juf_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.juf_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.juf_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.juf_runners
                     elif runner_category == "ESH" :
-                        self.get_gaussienne_graph(self.esh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.esh_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.esh_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.esh_runners
                     elif runner_category == "ESF" :
-                        self.get_gaussienne_graph(self.esf_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.esf_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.esf_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.esf_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.esf_runners
                     elif runner_category == "SEH" :
-                        self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.seh_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.seh_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.seh_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.seh_runners
                     elif runner_category == "SEF" :
-                        self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.sef_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.sef_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.sef_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.sef_runners
                     elif runner_category == "MAH1" :
-                        self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_1_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.mah_1_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.mah_1_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.mah_1_runners
                     elif runner_category == "MAH2" :
-                        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.mah_2_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.mah_2_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.mah_2_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.mah_2_runners
                     elif runner_category == "MAF1" :
-                        self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_1_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.maf_1_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.maf_1_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.maf_1_runners
                     elif runner_category == "MAF2" :
-                        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/right_figure.png", f"still to categorize - {name_runner["Category_Rank"].values[0]} / {len(self.maf_2_runners)} by category", "", True, name_runner["Finish"].values[0])
+                        self.get_gaussienne_graph(self.maf_2_runners["Finish"], "Data/right_figure.png", f"{name_runner["Cluster_10_Label"].values[0]} - {name_runner["Category_Rank"].values[0]} / {len(self.maf_2_runners)} by category", "", True, name_runner["Finish"].values[0])
                         return 3, name_runner, self.maf_2_runners
                 
             else: # otherwise, we didn't find any or we found multiple runners, we return none, it will dealt by the graphical interface
@@ -458,11 +458,11 @@ class Race_Datas:
 
             if nb_clusters == 5:
                 cluster_5_labels = {
-                    0: "Positive Split", # slows down at each interval by a small amount
-                    3: "Strong Starter", # starts really fast compared to the average
-                    1: "Negative Split", # accelerates at each interval by a small amount
-                    4: "Fast Finisher", # ends really fast compared to the average
-                    2: "Consistent", # stays almost at the same pace at each interval
+                    0: "Positive split", # slows down at each interval by a small amount
+                    3: "Strong starter", # starts really fast compared to the average
+                    1: "Negative split", # accelerates at each interval by a small amount
+                    4: "Fast finisher", # ends really fast compared to the average
+                    2: "Steady pace", # stays almost at the same pace at each interval
                 }
                 df["Cluster_5_Label"] = df["Cluster_5"].map(cluster_5_labels)
 
@@ -472,28 +472,52 @@ class Race_Datas:
                 print(cluster_counts)
                 print("\n")
 
-            else : 
-                cluster_9_labels = {
-                    3: "Strong Starter", # starts really fast compared to the average and the last 16 km
-                    5: "Bad Starter", # starts really slow compared to the average and the last 16 km
-                    4: "Fast Finisher", # ends really fast compared to the average and the first 15 km
-                    6: "Bad Finisher", # ends really slow compared to the average and the first 15 km
-                    0: "Positive Split", # slows down at each interval by a small amount
-                    1: "Negative Split", # accelerates at each interval by a small amount
-                    2: "Consistent", # stays almost at the same pace at each interval
-                    7: "Mid-Race accellerator", # start and end 5k slow compared to the middle 10k
-                    8: "Mid-Race decelerator" # start and end 5k fast compared to the middle 10k
+            elif nb_clusters == 8: 
+                cluster_8_labels = {
+                    3: "Steady Pace", # stays almost at the same pace at each interval
+                    0 : "Steady + hills struggles",  # small drop in pace in the climbs (around the 10k mark)
+                    2: "Mid-race slowdown", # first 10k fast compared to the last 11.097 km
+                    
+                    1: "Weak finisher", # ends really slow compared to the average and the first 15 km
+                    4: "Strong starter", # starts really fast compared to the average and the last 16 km
+                    7: "Positive split", # slows down at each interval by a small amount
+                    
+                    6: "Weak starter", # starts really slow compared to the average and the last 16 km
+                    5: "Negative split" # accelerates at each interval by a small amount
                 }
-                df["Cluster_9_Label"] = df["Cluster_9"].map(cluster_9_labels)
+                df["Cluster_8_Label"] = df["Cluster_8"].map(cluster_8_labels)
+                # get the number of runners in each cluster
+                cluster_counts = df[f"Cluster_8_Label"].value_counts()
+                print(f"{nb_clusters} Clusters counts:")
+                print(cluster_counts)
+                print("\n")
 
-                cluster_counts = df[f"Cluster_9_Label"].value_counts()
+            elif nb_clusters == 10: 
+                cluster_10_labels = {
+                    4: "Steady pace", # stays almost at the same pace at each interval
+                    1: "Steady (+hills slowdown)", # small drop in pace in climbs (around the 10k mark)
+                    5: "cautious start, get times back 5-10k then consistent", # cautious start, picks up speed, then steady
+                    6: "Mid-race slowdown", # first 10k fast compared to the last 11.097 km
+            
+                    8: "Weak finisher", # ends really slow compared to the average and the first 15 km
+                    3: "Struggle at end", # ends slow compared to the average and the first 15 km
+                    2: "Strong starter", # starts really fast compared to the average and the last 16 km
+                    0: "Positive Split", # slows down at each interval by a small amount
+                    
+                    9: "Weak starter", # starts really slow compared to the average and the last 16 km
+                    7: "Negative split" # accelerates at each interval by a small amount
+                }
+                df["Cluster_10_Label"] = df["Cluster_10"].map(cluster_10_labels)
+                # get the number of runners in each cluster
+                cluster_counts = df[f"Cluster_10_Label"].value_counts()
                 print(f"{nb_clusters} Clusters counts:")
                 print(cluster_counts)
                 print("\n")
 
         # applying this to the wanted categories
         apply_kmeans(X, 5)
-        apply_kmeans(X, 9)
+        apply_kmeans(X, 8)
+        apply_kmeans(X, 10)
 
         # 5. Save results 
         df.to_csv(csv_path_output, sep=";", index=False)
