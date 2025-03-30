@@ -253,7 +253,7 @@ class Race_Datas:
           
     # function to get the average pace for the half marathon given the finish time
     def get_average_pace_str(self, finish_time, distance_km = 21.097):
-        if pd.isna(finish_time) or finish_time == "" or finish_time == "Disqualifié" or finish_time == "None" or finish_time == "Abandon": 
+        if pd.isna(finish_time) or finish_time == "" or finish_time == "Disqualifié" or finish_time == "None" or finish_time == "Abandon" or finish_time == None:
             return "None"
         
         # parse the finish time (e.g., "01:05:56")
@@ -276,8 +276,8 @@ class Race_Datas:
 
     # get the average pace in seconds per km
     def get_average_pace(self, time, distance = 21.097):
-        if pd.isna(time) or time == "" or time == "Disqualifié" or time == "None" or time == "Abandon": 
-                return None
+        if pd.isna(time) or time == "" or time == "Disqualifié" or time == "None" or time == "Abandon" or time == None: 
+            return None
         
         time_sec = self.time_to_seconds(time)
         if time_sec is None:
@@ -402,6 +402,7 @@ class Race_Datas:
         # filter out runners with invalid or missing finish times (handled separately)
         valid_finish_time_mask = ~runners['Finish'].isin(["Disqualifié", "None", "Abandon"]) & pd.notna(runners['Finish'])
         df = runners[valid_finish_time_mask].copy()
+        non_finishers = runners[~valid_finish_time_mask].copy()
 
         # 2. Define relevant datas for clustering
         # define the relevant columns 
@@ -520,4 +521,6 @@ class Race_Datas:
         apply_kmeans(X, 10)
 
         # 5. Save results 
-        df.to_csv(csv_path_output, sep=";", index=False)
+        runners = pd.concat([df, non_finishers], ignore_index=True) 
+        runners.to_csv(csv_path_output, sep=";", index=False)
+
