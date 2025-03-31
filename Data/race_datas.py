@@ -190,10 +190,8 @@ class Race_Datas:
                 all(part in remove_accents(x.lower()) for part in map(remove_accents, name_parts)))]
 
             if len(name_runner) == 1: # we found an unique runner
-                # this person must have a rank in the overall results, otherwise we can't display the results, it just means that the person didn't finish the race
-                no_rank_overall = name_runner['Rank'].str.contains(' -  ', na=False)
-                no_rank_category = self.runners['Category_Rank'].isna() | (self.runners['Category_Rank'] == "")
-                if not (no_rank_overall.any() or no_rank_category.any()) : # a non finished runner
+                valid_finish_time_mask = ~self.runners['Finish'].isin(["Disqualifié", "None", "Abandon"]) & pd.notna(self.runners['Finish'])
+                if not valid_finish_time_mask.loc[name_runner.index[0]]:  # The runner did not finish
                     return 2, name_runner
                 
                 else: # a finished runner
