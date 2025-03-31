@@ -78,7 +78,7 @@ class Signup_Screen(tk.Frame):
             )
         nationality_label.grid(row=2, column=1)
         self.nationality_combobox = ttk.Combobox(
-            user_info_frame, values=["French", "Tunisian", "Brazilian", "Ukrainian", "Polish", "Swiss", "Lebanese", "Other"], state="readonly"
+            user_info_frame, values=["French", "Belgian", "Swiss", "German", "Spanish", "Portuguese", "Italian", "English", "Dutch", "Polish", "Russian", "Algerian", "Moroccan", "Tunisian", "Canadian", "American", "Mexican", "Brazilian", "Columbian", "Indian", "Chinese", "Japanese", "Other"], state="readonly"
             )
         self.nationality_combobox.set('')
         self.nationality_combobox.grid(row=3, column=1)
