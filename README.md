@@ -1,26 +1,26 @@
-# Ekiden Race Results App in Python  
-> I’ve done an App in Python to show the different results linked to an Ekiden (a marathon relay in teams), just to get used to Tkinter and the Python classes to be prepared for much bigger project on the same topic, but that will push it further, including some machine learning tools (so I can practice it a bit). It does include some parsing of the input, function to help navigate through all the data, and a complete app to show them, including a login and sign-up part to simulate an app you need to connect from an account (but in an unsafe way because it’s based on basic Excel file) as well as the main screen where you can choose what you want to be shown to you or to search for a specific name in the search bar.
+# Boulogne Half Marathon Analysis App in Python
+> I’ve done an App in Python to show the different results linked to a Half Marathon I did back in November 2024 and from which I downloaded the results. This app is an upgraded version _(but also a different one)_ of the Ekiden App I previously did. The goal wasn't that much to just get used to Tkinter and the Python classes, but to add a runner race analyse, while still improving the functionnalities and the graphics for a better usage _(login, sign-up, buttons, search bar, …)_. Now everything rely on a SQL database, both datas that can still be loaded with the initial csv file but also client informations with crypted password _(no app security but an additional features)_. Datas are now handled through the pandas and numpy libraries, making it faster while handling 100x more datas. It allows me to pre-process the datas to then implement some machine learning tools. I need to start using these techniques with Python tools, as they will be useful later. I used the K-Means clustering algorithm in this project to categorize each runner's performance.
 
 
 #### Tables of contents
 * [Path tree](#path-tree)
-* [Direct links to folders](#direct-links-to-folders)  
+* [Direct links to folders](#direct-links-to-folders) 
+* [Runners categorization](#runners-categorization)
 * [Virtual Environnment and Librairies](#virtual-environnment-and-librairies)  
 * [App preview](#app-preview)
 
 
 ## Path tree
 ```
-Ekiden_Race_Results_App/
+Boulogne_Half_Marathon_Analysis/
 ├── Data/
-│   ├── Pictures/              
+│   ├── Databases/              
+│   ├── Pictures/    
 │   ├── Precomputed_graphs/    
-│   └── functions and datas
+│   └── Treatment file and temporary datas 
 │
-├── Test_Tkinter/
-│   ├── tests_done/           
-│   ├── screens_tests/         
-│   └── first_app_try/         
+├── K_means_implementation/
+│   └── Treatment files, datas and results
 │
 └── main functions             
 ```
@@ -28,12 +28,10 @@ Ekiden_Race_Results_App/
 
 ## Direct links to folders 
 * [Data](./Data/) : contains the files related to the treatment of the results 
+    * [Databases](./Data/Databases/) : contains all the csv and SQL files used during the datas treatment and the app use
     * [Pictures](./Data/Pictures/) : contains some useful picture to show in the app and the README
-    * [Precomputed_graphs](./Data/Precomputed_graphs/) : contains the precomputed generic picture for overall rankings
-* [Test Tkinter](./Test_Tkinter/) : contains the files used to test the Tkinter library
-    * [tests done](./Test_Tkinter/tests_done/) : basics test to see how every type of things in working in Tkinter 
-    * [screens tests](./Test_Tkinter/screens_tests/) : testing the different screen I will later use 
-    * [first app try](./Test_Tkinter/first_app_try/) : how I progressively shaped the current app by adding everything together and improving the rendering
+    * [Precomputed_graphs](./Data/Precomputed_graphs/) : contains the precomputed generic picture for overall rankings as well as K-means results
+* [Test K_means_implementation](./K_means_implementation/) : contains the files to try the Kmeans clustering method
 
 
 ## Virtual Environnment and Librairies
@@ -54,17 +52,15 @@ python3 -m pip install what_you_need
 To temporarly deactivate the virtual environnment
 ```
 deactivate 
-To suppress it : 
+```
+To suppress it
+```
 rm -rf path/to/venv
 ```
 
 I used those librairies for this project : 
 ```py
 import os # searching paths
-import re # regular expression
-from enum import Enum
-import numpy as np
-from scipy.stats import kde # gaussian modelisation
 import matplotlib.pyplot as plt # to plot things
 import matplotlib.ticker as ticker # plots customization
 import tkinter as tk # tkinter 
@@ -72,6 +68,14 @@ from tkinter import ttk # for more modern and and customizable widgets
 from tkinter import messagebox # for errors messages
 from tkinter import PhotoImage # for pictures 
 from PIL import Image, ImageTk # a better rezising
+import re # regular expression
+import bcrypt # password crypting 
+import sqlite3 # SQL database 
+import numpy as np # numpy arrays
+import pandas as pd # dataframe use
+from scipy.stats import gaussian_kde # gaussian modelisation
+from sklearn.cluster import KMeans # for clustering purpose
+from sklearn.preprocessing import StandardScaler # prepare the datas
 ```
 
 
