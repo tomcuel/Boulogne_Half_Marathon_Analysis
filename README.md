@@ -122,6 +122,11 @@ By leveraging K-Means, we can better **understand different running profiles and
 - **By hand** to know the whole algorithm without blindly applying the Python method
 The by-hand method was a bit slower but the results are pretty similar. Still, the app results are used using the auto K-means clustering using Scikit-Learn.
 
+###### Results analysis 
+I then manually look at the data to identify the types of each runner group using my own running knowledge, as well as the race map _(since hills affect split times)_. Here are the results of a K-means clustering with five runner categories:
+
+<img src="./Data/Precomputed_graphs/Kmeans_5_clusters.png" alt="Kmeans_5_clusters" width="400" height="400"/>
+
 ## App preview 
 #### How to use it
 Every button is clickable and will redirect you to the corresponding part of the App, you can use it like any app. For the login and the sign-up screens, the cursor is directly on the first entry, so we can type as soon as we wanted, and the tabulation and enter key does work here to move to the next entry to continue
