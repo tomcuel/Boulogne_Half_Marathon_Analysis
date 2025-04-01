@@ -90,18 +90,37 @@ Below is a comparison between the original categories defined by the Fédératio
 | Old Category (FFA Labels) | New Category |
 |---------------------------|--------------|
 | JUH                       | JUH          |
-| JUF                       | JUF       |
-| ESH                       | ESH       |
-| ESF                   | ESF       |
-| SEH                   | SEH       |
-| SEF                   | SEF       |
-| M0-4H                   | MAH1       |
-| M5-10H                   | MAH2       |
-| M0-4F                   | MAF1       |
-| M5-10F                   | MAF2       |
+| JUF                       | JUF          |
+| ESH                       | ESH          |
+| ESF                       | ESF          |
+| SEH                       | SEH          |
+| SEF                       | SEF          |
+| M0-4H                     | MAH1         |
+| M5-10H                    | MAH2         |
+| M0-4F                     | MAF1         |
+| M5-10F                    | MAF2         |
 
 #### K-means clustering algorithm
+To categorize runner performances, I applied the **K-Means clustering algorithm**, a widely used unsupervised machine learning technique. K-Means groups data points into a predefined number of clusters based on feature similarities.
 
+###### How K-Means Works:
+1. **Feature Selection**: For this project, key performance metrics such as pace progression, split differences, and final time were used as features.
+2. **Cluster Initialization**: The algorithm randomly initializes `k` cluster centroids.
+3. **Assignment Step**: Each runner is assigned to the closest centroid based on the Euclidean distance.
+4. **Update Step**: The centroids are recalculated based on the mean of all assigned points.
+5. **Iteration**: Steps 3 and 4 repeat until the clusters stabilize or a stopping criterion is met.
+
+###### Why K-Means?
+- It provides a **data-driven** method to segment runners based on their performance trends.
+- It helps identify distinct pacing strategies (e.g., **negative split, positive split, strong starter, consistent pace**).
+- It is scalable and efficient for large datasets.
+
+By leveraging K-Means, we can better **understand different running profiles and refine race analysis strategies**!
+
+###### How I did it ? 
+- Using **Scikit-Learn** Python librairy, for a more effictive approach
+- **By hand** to know the whole algorithm without blindly applying the Python method
+The by-hand method was a bit slower but the results are pretty similar. Still, the app results are used using the auto K-means clustering using Scikit-Learn.
 
 ## App preview 
 #### How to use it
