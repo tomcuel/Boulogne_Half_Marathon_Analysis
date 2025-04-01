@@ -1,5 +1,5 @@
 # Boulogne Half Marathon Analysis App in Python
-> I’ve done an App in Python to show the different results linked to a Half Marathon I did back in November 2024 and from which I downloaded the results. This app is an upgraded version _(but also a different one)_ of the Ekiden App I previously did. The goal wasn't that much to just get used to Tkinter and the Python classes, but to add a runner race analyse, while still improving the functionnalities and the graphics for a better usage _(login, sign-up, buttons, search bar, …)_. Now everything relies on a SQL database, both datas _(that can still be loaded with the initial csv file)_ but also client informations with crypted password _(no app security but an additional feature)_. Datas are now handled through the pandas and numpy libraries, making it faster while handling 100x more datas. It allows me to pre-process the datas to then implement some machine learning tools. I need to start using these techniques with Python tools, as they will be useful later. I used the K-Means clustering algorithm in this project to categorize each runner's performance.
+> I’ve done an App in Python to show the different results linked to a Half Marathon I did back in November 2024 and from which I downloaded the results. This app is an upgraded version _(but also a different one)_ of the Ekiden App I previously did. The goal wasn't that much to just get used to Tkinter and the Python classes, but to add a runner race analyse, while still improving the functionnalities and the graphics for a better usage **(login, sign-up, buttons, search bar, …)**. Now everything relies on a **SQL database**, both datas _(that can still be loaded with the initial csv file)_ but also client informations with **crypted password** _(no app security but an additional feature)_. Datas are now handled through the **pandas and numpy libraries**, making it faster while handling **100x more datas**. It allows me to pre-process the datas to then implement some **Machine Learning tools**. I need to start using these techniques with Python tools, as they will be useful later. I used the **K-Means clustering algorithm** in this project to categorize each runner's performance.
 
 
 #### Tables of contents
@@ -35,7 +35,7 @@ Boulogne_Half_Marathon_Analysis/
 
 
 ## Virtual Environnment and Librairies
-Since the libraries are not installed on my Mac, I need to set up a virtual environment to access and use the required libraries, here is how to do :
+Since the libraries are not installed on my Mac, I need to set up a virtual environment to access and use the **required libraries**, here is how to do :
 
 Creating the virtual environnment
 ```
@@ -81,9 +81,9 @@ from sklearn.preprocessing import StandardScaler # prepare the datas
 
 ## Runners categorization
 #### Data pre-processing 
-During the data pre-processing phase, I computed various indicators, such as pace intervals and differences between split times, to analyze the pace progression during the race. This step was essential for identifying trends and patterns in the runners' performances.
+During the data pre-processing phase, I **computed various indicators**, such as pace intervals and differences between split times, to analyze the pace progression during the race. This step was essential for **identifying trends and patterns in the runners' performances**.
 
-Additionally, I merged the M0-10H and M0-10F categories into two broader groups for both sexes to ensure that no category contained too few participants. This required updating all category ranks accordingly.
+Additionally, I merged the M0-10H and M0-10F categories into two broader groups for both sexes to ensure that no category contained too few participants. This required **updating all category ranks** accordingly.
 
 Below is a comparison between the original categories defined by the Fédération Française d'Athlétisme (FFA) and the new categories used for analysis:
 
@@ -104,11 +104,11 @@ Below is a comparison between the original categories defined by the Fédératio
 To categorize runner performances, I applied the **K-Means clustering algorithm**, a widely used unsupervised machine learning technique. K-Means groups data points into a predefined number of clusters based on feature similarities.
 
 ###### How K-Means Works:
-1. **Feature Selection**: For this project, key performance metrics such as pace progression, split differences, and final time were used as features.
-2. **Cluster Initialization**: The algorithm randomly initializes `k` cluster centroids.
-3. **Assignment Step**: Each runner is assigned to the closest centroid based on the Euclidean distance.
-4. **Update Step**: The centroids are recalculated based on the mean of all assigned points.
-5. **Iteration**: Steps 3 and 4 repeat until the clusters stabilize or a stopping criterion is met.
+1. **Feature Selection**: for this project, key performance metrics such as pace progression, split differences, and final time were used as features.
+2. **Cluster Initialization**: the algorithm randomly initializes `k` cluster centroids.
+3. **Assignment Step**: aach runner is assigned to the closest centroid based on the Euclidean distance.
+4. **Update Step**: the centroids are recalculated based on the mean of all assigned points.
+5. **Iteration**: steps 3 and 4 repeat until the clusters stabilize or a stopping criterion is met.
 
 ###### Why K-Means?
 - It provides a **data-driven** method to segment runners based on their performance trends.
@@ -118,7 +118,7 @@ To categorize runner performances, I applied the **K-Means clustering algorithm*
 By leveraging K-Means, we can better **understand different running profiles and refine race analysis strategies**!
 
 ###### How I did it ? 
-- Using **Scikit-Learn** Python librairy, for a more effictive approach
+- Using **Scikit-Learn** Python library, for a more effictive approach
 - **By hand** to know the whole algorithm without blindly applying the Python method
 The by-hand method was a bit slower but the results are pretty similar. Still, the app results are used using the auto K-means clustering using Scikit-Learn.
 
