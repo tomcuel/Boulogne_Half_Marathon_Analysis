@@ -125,7 +125,7 @@ The by-hand method was a bit slower but the results are pretty similar. Still, t
 ###### Results analysis 
 I then manually look at the data to identify the types of each runner group using my own running knowledge, as well as the race map _(since hills affect split times)_. Here are the results of a K-means clustering with five runner categories:
 
-<img src="./Data/Precomputed_graphs/Kmeans_5_clusters.png" alt="Kmeans_5_clusters" width="400" height="400"/>
+<img src="./Data/Precomputed_graphs/Kmeans_5_clusters.png" alt="Kmeans_5_clusters" width="600" height="600"/>
 
 ## App preview 
 #### How to use it
@@ -133,13 +133,13 @@ Every button is clickable and will redirect you to the corresponding part of the
 Here is a preview of some screens you will encounter when lauching the app : 
 
 #### Login screen render
-<img src="./Data/Pictures/login_screen_render.png" alt="login_screen_render" width="350" height="225"/>
+<img src="./Data/Pictures/login_screen_render.png" alt="login_screen_render" width="450" height="300"/>
 
 #### Sign-up screen render
-<img src="./Data/Pictures/signup_screen_render.png" alt="signup_screen_render" width="350" height="225"/>
+<img src="./Data/Pictures/signup_screen_render.png" alt="signup_screen_render" width="450" height="300"/>
 
 #### Home screen render
-<img src="./Data/Pictures/home_app_screen_render.png" alt="home_app_screen_render" width="350" height="225"/>
+<img src="./Data/Pictures/home_app_screen_render.png" alt="home_app_screen_render" width="450" height="300"/>
 
 #### Own results screen render
-<img src="./Data/Pictures/own_results_screen_render.png" alt="own_results_screen_render" width="350" height="225"/>
+<img src="./Data/Pictures/own_results_screen_render.png" alt="own_results_screen_render" width="450" height="300"/>
