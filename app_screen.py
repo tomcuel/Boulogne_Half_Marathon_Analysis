@@ -581,6 +581,13 @@ class App_Screen(tk.Frame):
         # non finisher result for a runner
         elif datas[0] == 2:
             self.results_header_frame.destroy()
+
+            # adding a label to tell the user that there is no result
+            no_result_label = tk.Label(
+                self.scrollable_frame, text="Non Finisher", font=("Helvetica", 20), bg="#FFDB58", fg="#000000"
+            )
+            no_result_label.grid(row=0, column=0, columnspan=2, pady=(20, 10), sticky="nsew")
+
             runner_info = datas[1]
 
             runners_infos = [str(runner_info["Name"].values[0]), str(runner_info["Category"].values[0]), str(runner_info["Category_Rank"].values[0]), str(runner_info["5km"].values[0]), str(runner_info["10km"].values[0]), str(runner_info["12km"].values[0]), str(runner_info["15km"].values[0]), str(runner_info["Finish"].values[0])]
@@ -593,7 +600,7 @@ class App_Screen(tk.Frame):
                 self.scrollable_frame, text=row_text, font=("Courier", 15),  # monospaced font
                 justify="left", anchor="w", bg="#FFDB58"
             )
-            non_finisher_label.grid(row=0, column=0, columnspan=2, sticky="nsew", pady=(0, 10))
+            non_finisher_label.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=(0, 10))
 
             # putting back the scrollable frame to the top
             self.scroll_canvas.yview_moveto(0)
