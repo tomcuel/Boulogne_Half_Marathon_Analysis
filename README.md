@@ -1,5 +1,5 @@
 # Boulogne Half Marathon Analysis App in Python
-> I’ve done an App in Python to show the different results linked to a Half Marathon I did back in November 2024 and from which I downloaded the results. This app is an upgraded version _(but also a different one)_ of the Ekiden App I previously did. The goal wasn't that much to just get used to Tkinter and the Python classes, but to add a runner race analyse, while still improving the functionnalities and the graphics for a better usage _(login, sign-up, buttons, search bar, …)_. Now everything rely on a SQL database, both datas that can still be loaded with the initial csv file but also client informations with crypted password _(no app security but an additional features)_. Datas are now handled through the pandas and numpy libraries, making it faster while handling 100x more datas. It allows me to pre-process the datas to then implement some machine learning tools. I need to start using these techniques with Python tools, as they will be useful later. I used the K-Means clustering algorithm in this project to categorize each runner's performance.
+> I’ve done an App in Python to show the different results linked to a Half Marathon I did back in November 2024 and from which I downloaded the results. This app is an upgraded version _(but also a different one)_ of the Ekiden App I previously did. The goal wasn't that much to just get used to Tkinter and the Python classes, but to add a runner race analyse, while still improving the functionnalities and the graphics for a better usage _(login, sign-up, buttons, search bar, …)_. Now everything relies on a SQL database, both datas _(that can still be loaded with the initial csv file)_ but also client informations with crypted password _(no app security but an additional feature)_. Datas are now handled through the pandas and numpy libraries, making it faster while handling 100x more datas. It allows me to pre-process the datas to then implement some machine learning tools. I need to start using these techniques with Python tools, as they will be useful later. I used the K-Means clustering algorithm in this project to categorize each runner's performance.
 
 
 #### Tables of contents
@@ -80,6 +80,27 @@ from sklearn.preprocessing import StandardScaler # prepare the datas
 
 
 ## Runners categorization
+#### Data pre-processing 
+During the data pre-processing phase, I computed various indicators, such as pace intervals and differences between split times, to analyze the pace progression during the race. This step was essential for identifying trends and patterns in the runners' performances.
+
+Additionally, I merged the M0-10H and M0-10F categories into two broader groups for both sexes to ensure that no category contained too few participants. This required updating all category ranks accordingly.
+
+Below is a comparison between the original categories defined by the Fédération Française d'Athlétisme (FFA) and the new categories used for analysis:
+
+| Old Category (FFA Labels) | New Category |
+|---------------------------|--------------|
+| JUH                       | JUH          |
+| JUF                       | JUF       |
+| ESH                       | ESH       |
+| ESF                   | ESF       |
+| SEH                   | SEH       |
+| SEF                   | SEF       |
+| M0-4H                   | MAH1       |
+| M5-10H                   | MAH2       |
+| M0-4F                   | MAF1       |
+| M5-10F                   | MAF2       |
+
+#### K-means clustering algorithm
 
 
 ## App preview 
