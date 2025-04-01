@@ -123,7 +123,11 @@ By leveraging K-Means, we can better **understand different running profiles and
 The by-hand method was a bit slower but the results are pretty similar. Still, the app results are used using the auto K-means clustering using Scikit-Learn.
 
 ###### Results analysis 
-I then manually look at the data to identify the types of each runner group using my own running knowledge, as well as the race map _(since hills affect split times)_. Here are the results of a K-means clustering with five runner categories:
+I then manually examined the data to identify different runner groups using both my running knowledge and the race map _(since hills affect split times)_.
+
+One key challenge in categorization is the uncertainty surrounding kilometer markers. Depending on a runner’s trajectory, these markers may not be positioned exactly as expected. For example, in my own experience, I observed a 75-meter discrepancy every 5 km, which resulted in a time shift of approximately 20 seconds—equivalent to 4 seconds per kilometer. This discrepancy significantly impacts group characterization, especially when combined with elevation changes, such as the climbs in the 5–10 km and 10–15 km segments. That's why I choose to manually examined the result to determine the categories
+
+Here are the results of a K-means clustering with five runner categories:
 
 <img src="./Data/Precomputed_graphs/Kmeans_5_clusters.png" alt="Kmeans_5_clusters" width="600" height="600"/>
 
@@ -143,3 +147,9 @@ Here is a preview of some screens you will encounter when lauching the app :
 
 #### Own results screen render
 <img src="./Data/Pictures/own_results_screen_render.png" alt="own_results_screen_render" width="450" height="300"/>
+
+
+#### Disclaimer 
+- Tkinter cannot display searches for runners ranked beyond the 1000th place in their category _(I had to reduce the sample size for ranking display at 400 runners before and 400 after)_.
+- The search bar find results only if the characters give you an only runner is the whole datasets. One possible solution to avoid that would have been to implement a sub-search screen displaying all possible matches based on the input, but this would have required additional development that does not align with the main objectives of the project.
+- If needed, the database can be deleted to recompute all the data.
