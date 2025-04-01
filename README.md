@@ -54,11 +54,12 @@ python3 -m pip install what_you_need
 To temporarly deactivate the virtual environnment
 ```
 deactivate 
+To suppress it : 
+rm -rf path/to/venv
 ```
 
 I used those librairies for this project : 
 ```py
-import openpyxl # using excel 
 import os # searching paths
 import re # regular expression
 from enum import Enum
@@ -72,6 +73,9 @@ from tkinter import messagebox # for errors messages
 from tkinter import PhotoImage # for pictures 
 from PIL import Image, ImageTk # a better rezising
 ```
+
+
+## Runners categorization
 
 
 ## App preview 
